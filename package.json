@@ -3,9 +3,14 @@
   "version": "0.1.0",
   "description": "Easy integration of redial for React Router",
   "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "babel src --out-dir lib",
     "lint": "eslint src",
+    "release": "node ./scripts/release.js",
+    "prepublish": "npm run build",
     "test": "npm run lint"
   },
   "repository": {
