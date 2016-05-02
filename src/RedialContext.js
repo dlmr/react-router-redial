@@ -14,7 +14,7 @@ function createElement(component, props) {
 }
 
 function hydrate(props) {
-  if (typeof __REDIAL_PROPS__ !== 'undefined') {
+  if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
     return createMap(props.components, __REDIAL_PROPS__);
   }
 
