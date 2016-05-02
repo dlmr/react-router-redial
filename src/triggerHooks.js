@@ -35,6 +35,6 @@ export default function triggerHooks(
     ), Promise.resolve()
   ).then(() => ({
     redialMap,
-    redialProps: redialMap.dehydrate([].concat(components)),
+    redialProps: redialMap.dehydrate([].concat(hookComponents)),
   }));
 }
