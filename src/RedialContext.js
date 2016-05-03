@@ -1,7 +1,7 @@
 /* global __REDIAL_PROPS__ */
 
 import React, { Component } from 'react';
-import { RouterContext } from 'react-router';
+import RouterContext from 'react-router/lib/RouterContext';
 
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
