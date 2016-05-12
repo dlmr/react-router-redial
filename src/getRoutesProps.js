@@ -1,10 +1,11 @@
 export default function getRoutesProps(routes) {
   return routes.reduce((previous, route) => {
-    const standard = {
-      ...previous,
-      ...route,
-    };
+    // eslint-disable-next-line no-unused-vars
+    const { childRoutes, indexRoute, ...rest } = route;
 
-    return route.indexRoute ? { ...standard, ...route.indexRoute } : standard;
-  });
+    return {
+      ...previous,
+      ...rest,
+    };
+  }, {});
 }
