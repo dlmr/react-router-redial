@@ -87,9 +87,7 @@ export default class RedialContext extends Component {
   }
 
   componentDidMount() {
-    if (!this.props.redialMap && this.state.redialMap.size() === 0) {
-      this.load(this.props.components, this.props);
-    }
+    this.load(this.props.components, this.props);
   }
 
   componentWillReceiveProps(nextProps) {
