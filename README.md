@@ -1,4 +1,4 @@
-# react-router-redial [![Travis][build-badge]][build] [![npm package][npm-badge]][npm]
+# react-router-redial [![Travis][build-badge]][build] [![npm package][npm-badge]][npm] [![Coveralls][coverage-badge]][coverage]
 
 Simple integration of [redial](https://github.com/markdalgleish/redial) for [React Router](https://github.com/reactjs/react-router)
 
@@ -245,3 +245,6 @@ export default (path, store) => new Promise((resolve, reject) => {
 
 [npm-badge]: https://img.shields.io/npm/v/react-router-redial.svg?style=flat-square
 [npm]: https://www.npmjs.org/package/react-router-redial
+
+[coverage-badge]: https://img.shields.io/coveralls/dlmr/react-router-redial/master.svg?style=flat-square
+[coverage]: https://coveralls.io/github/dlmr/react-router-redial
