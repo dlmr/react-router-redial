@@ -2,7 +2,8 @@
     "extends": "airbnb",
     "parser": "babel-eslint",
     "plugins": [
-        "import-order"
+        "import-order",
+        "sorting"
     ],
     "rules": {
         "react/prefer-stateless-function": 0

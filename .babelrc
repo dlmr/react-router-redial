@@ -1,3 +1,8 @@
 {
-  "presets": [ "es2015", "react", "stage-1" ]
+  "presets": [ "es2015", "react", "stage-1" ],
+  "env": {
+    "test": {
+      "plugins": [ ["__coverage__", { "only": "src/**/*.js" }] ]
+    }
+  }
 }
