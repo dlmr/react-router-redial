@@ -1,4 +1,5 @@
 import { trigger } from 'redial';
+import isPlainObject from 'lodash.isplainobject';
 import createMap from './createMap';
 import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
@@ -8,11 +9,19 @@ export default function triggerHooks(
 ) {
   // Set props for specific component
   const setProps = (component) =>
-    (props) => redialMap.set(component, props);
+    (props) => {
+      if (!isPlainObject(props)) {
+        throw new Error('The input to setProps needs to be an object');
+      }
+      redialMap.set(component, {
+        ...redialMap.get(component),
+        ...props,
+      });
+    };
 
   // Get components for a specific component
   const getProps = (component) =>
-    () => redialMap.get(component);
+    () => redialMap.get(component) || {};
 
   const completeLocals = (component) => ({
     location: renderProps.location,

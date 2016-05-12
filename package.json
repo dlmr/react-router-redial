@@ -51,5 +51,8 @@
     "react-router": "^2.0.1",
     "readline-sync": "1.4.2",
     "redial": "^0.4.1"
+  },
+  "dependencies": {
+    "lodash.isplainobject": "4.0.4"
   }
 }
