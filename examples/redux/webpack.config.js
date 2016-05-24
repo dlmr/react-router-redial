@@ -5,7 +5,7 @@ module.exports = {
 
   devtool: 'source-map',
 
-  entry: path.join(__dirname, 'client.js'),
+  entry: ['babel-polyfill', path.join(__dirname, 'client.js')],
 
   output: {
     path: path.join(__dirname, 'build'),
