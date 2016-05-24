@@ -3,7 +3,7 @@ export default function createMap(possibleKeys, allValues) {
   const values = [];
 
   const set = (index, value) => {
-    const i = keys.findIndex((current) => current === index);
+    const i = keys.indexOf(index);
     if (i > -1) {
       values[i] = value;
     } else {
@@ -14,7 +14,7 @@ export default function createMap(possibleKeys, allValues) {
 
   const size = () => keys.length;
 
-  const get = (index) => values[keys.findIndex((current) => current === index)];
+  const get = (index) => values[keys.indexOf(index)];
 
   const dehydrate = (allPossibleKeys) => allPossibleKeys.map((key) => get(key));
 
