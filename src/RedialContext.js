@@ -67,8 +67,8 @@ export default class RedialContext extends Component {
       loading: false,
       deferredLoading: false,
       prevProps: null,
-      redialMap: this.props.redialMap || hydrate(this.props),
-      initial: this.props.blocking.length > 0,
+      redialMap: props.redialMap || hydrate(props),
+      initial: props.blocking.length > 0,
     };
   }
 
