@@ -13,6 +13,10 @@ Additionally it offers an alternative way to manage data for components without 
 
 react-router-redial has been inspired by [AsyncProps](https://github.com/ryanflorence/async-props) and can be seen as an alternative to it.
 
+Works with universal applications that run on the server and the client as well as client only applications.
+
+Works with IE9 if a Promise polyfill is provided.
+
 ### Difference from redial
 - Simple integration with React Router
 - Managing client side data loading with route transition support
