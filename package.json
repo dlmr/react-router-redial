@@ -1,6 +1,6 @@
 {
   "name": "react-router-redial",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Easy integration of redial for React Router",
   "main": "lib/index.js",
   "files": [
