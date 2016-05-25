@@ -20,7 +20,9 @@ import { provideHooks } from 'redial';
       // Will be available as this.props.data on the component
       setProps({ data: 'Client data' })
     }
-  }
+  },
+  deferDone: () => console.log('deferDone'),
+  blockingDone: () => console.log('blockingDone'),
 })
 export default class Index extends Component {
   render() {

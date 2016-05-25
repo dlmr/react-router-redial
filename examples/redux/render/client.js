@@ -21,8 +21,8 @@ export default (container, routes, store) => {
         <RedialContext
           { ...props }
           locals={locals}
-          blocking={['fetch']}
-          defer={['defer', 'done']}
+          blocking={['fetch', 'blockingDone']}
+          defer={['defer', 'deferDone']}
           parallel={false}
           initialLoading={() => <div>Loading…</div>}
         />
