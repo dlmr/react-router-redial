@@ -159,7 +159,7 @@ export default class RedialContext extends Component {
         });
 
         // Start deferred if we are not in parallel
-        if (!this.props.parallel) {
+        if (!force && !this.props.parallel) {
           this.runDeferred(
             this.props.defer,
             components,
