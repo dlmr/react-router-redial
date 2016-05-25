@@ -137,6 +137,7 @@ export default class RedialContext extends Component {
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
+      bail: () => this.props.location !== props.location,
     }).then(({ redialMap }) => {
       this.setState({
         deferredLoading: false,
@@ -180,6 +181,7 @@ export default class RedialContext extends Component {
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
+      bail: () => this.props.location !== props.location,
     }).then(({ redialMap }) => {
       completeRouteTransition(redialMap);
     }).catch((err) => {

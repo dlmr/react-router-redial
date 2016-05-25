@@ -5,7 +5,7 @@ import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
 
 export default function triggerHooks(
-  { hooks, components, locals, renderProps, force = false, redialMap = createMap() }
+  { hooks, components, locals, renderProps, force = false, bail, redialMap = createMap() }
 ) {
   // Set props for specific component
   const setProps = (component) =>
@@ -37,9 +37,12 @@ export default function triggerHooks(
 
   return hooks.reduce((promise, parallelHooks) =>
     promise.then(() =>
-      Promise.all(
-        [].concat(parallelHooks)
-          .map((hook) => trigger(hook, hookComponents, completeLocals))
+      (bail && bail() ?
+        Promise.resolve() :
+        Promise.all(
+          [].concat(parallelHooks)
+            .map((hook) => trigger(hook, hookComponents, completeLocals))
+        )
       )
     ), Promise.resolve()
   ).then(() => ({
