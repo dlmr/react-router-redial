@@ -53,9 +53,9 @@ export default class RedialContext extends Component {
       return <RouterContext { ...props } createElement={createElement} />;
     },
 
-    onError(err) {
+    onError(err, type) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error(err);
+        console.error(type, err);
       }
     },
 
@@ -158,9 +158,9 @@ export default class RedialContext extends Component {
 
     const bail = () => {
       if (aborted()) {
-        return 'Manually aborted';
+        return 'aborted';
       } else if (this.props.location !== props.location) {
-        return 'Location changed';
+        return 'location-changed';
       }
 
       return false;
@@ -197,7 +197,7 @@ export default class RedialContext extends Component {
 
     Promise.all(promises)
       .then(this.props.onCompleted)
-      .catch(this.props.onError);
+      .catch((err) => this.props.onError(err, bail() || 'other'));
   }
 
   runDeferred(hooks, components, props, force = false, bail) {

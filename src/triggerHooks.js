@@ -45,7 +45,7 @@ export default function triggerHooks({
   return hooks.reduce((promise, parallelHooks) =>
     promise.then(() => {
       if (bail()) {
-        throw new Error(bail());
+        throw new Error(`Redial was terminated because: ${bail()}`);
       }
       return Promise.all(
         [].concat(parallelHooks)
@@ -54,7 +54,7 @@ export default function triggerHooks({
     }), Promise.resolve()
   ).then(() => {
     if (bail()) {
-      throw new Error(bail());
+      throw new Error(`Redial was terminated because: ${bail()}`);
     }
 
     return {

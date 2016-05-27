@@ -82,7 +82,7 @@ defer                 Hooks that are not needed before making a route transition
 parallel              If set to true the deferred hooks will run in parallel with the blocking ones
 initialLoading        Component should be shown on initial client load, useful if server rendering is not used
 onStarted(force)      Invoked when a route transition has been detected and when redial hooks will be invoked
-onError(error)        Invoked when an error happens, can be either a location change, manually aborted or other reason
+onError(error, type)  Invoked when an error happens, type can be either a "location-change", "aborted" or "other" reason
 onAborted             Invoked if it was prematurely aborted through manual interaction
 onCompleted           Invoked if everything was completed successfully, both blocking and deferred
 ```
