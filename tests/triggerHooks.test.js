@@ -158,13 +158,43 @@ describe('triggerHooks', () => {
     fetchSpy.andCall(({ setProps }) => {
       setProps(2);
     });
-
     const hooks = ['fetch'];
     return triggerHooks({
       hooks,
       renderProps,
     }).catch((err) => {
       expect(err).toBeA(Error);
+    });
+  });
+
+  it('should break the chain if bail is defined and not false', () => {
+    const hooks = ['fetch'];
+    const bail = () => 'Was aborted for some reason';
+    return triggerHooks({
+      hooks,
+      renderProps,
+      bail,
+    }).catch((err) => {
+      expect(err).toEqual(new Error(bail()));
+    });
+  });
+
+  it('should break reject the chain if it was aborted after all was completed', () => {
+    let aborted = false;
+    doneSpy.andCall(() => {
+      aborted = true;
+    });
+    fetchSpy.andCall(() => {});
+    const hooks = ['fetch', 'done'];
+    const bail = () => aborted && 'Was aborted for some reason';
+    return triggerHooks({
+      hooks,
+      renderProps,
+      bail,
+    }).catch((err) => {
+      expect(fetchSpy.calls.length).toEqual(1);
+      expect(doneSpy.calls.length).toEqual(1);
+      expect(err).toEqual(new Error(bail()));
     });
   });
 });
