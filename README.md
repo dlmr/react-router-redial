@@ -61,6 +61,7 @@ force             If the provideHooks has been invoked using the reload function
 params            Route params from React Router
 location          Location object from React Router
 routeProps        Custom defined properties that has been defined on the route components
+isAborted         Function that returns if the hooks has been aborted, can be used to ignore the result
 ```
 
 ### Default props available to decorated components
@@ -68,6 +69,7 @@ routeProps        Custom defined properties that has been defined on the route c
 loading           Will be true when blocking hooks are not yet completed
 deferredLoading   Will be true when deferred hooks are not yet completed
 reload            Function that can be invoked to re-trigger the hooks for the current component
+abort             Function that can be invoked to abort current running hooks
 ```
 Additionally components will have access to properties that has been set using `setProps`.
 
