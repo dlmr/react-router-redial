@@ -76,11 +76,15 @@ Additionally components will have access to properties that has been set using `
 ## Client API
 The custom router context `RedialContext` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
 ```
-locals            Extra locals that should be provided to the hooks other than the default ones
-blocking          Hooks that should be completed before a route transition is completed
-defer             Hooks that are not needed before making a route transition
-parallel          If set to true the deferred hooks will run in parallel with the blocking ones
-initialLoading    Component should be shown on initial client load, useful if server rendering is not used
+locals                Extra locals that should be provided to the hooks other than the default ones
+blocking              Hooks that should be completed before a route transition is completed
+defer                 Hooks that are not needed before making a route transition
+parallel              If set to true the deferred hooks will run in parallel with the blocking ones
+initialLoading        Component should be shown on initial client load, useful if server rendering is not used
+onStarted(force)      Invoked when a route transition has been detected and when redial hooks will be invoked
+onError(error)        Invoked when an error happens, can be either a location change, manually aborted or other reason
+onAborted             Invoked if it was prematurely aborted through manual interaction
+onCompleted           Invoked if everything was completed successfully, both blocking and deferred
 ```
 
 ```js
