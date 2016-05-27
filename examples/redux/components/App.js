@@ -11,6 +11,7 @@ export default class App extends Component {
 
     return (
       <div style={style}>
+        <button onClick={this.props.abort}>Abort</button>
         <h1>React Router Redial Example</h1>
         <ul>
           <li>
