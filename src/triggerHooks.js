@@ -4,9 +4,15 @@ import createMap from './createMap';
 import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
 
-export default function triggerHooks(
-  { hooks, components, locals, renderProps, force = false, redialMap = createMap() }
-) {
+export default function triggerHooks({
+  hooks,
+  components,
+  locals,
+  renderProps,
+  force = false,
+  bail = () => false,
+  redialMap = createMap(),
+}) {
   // Set props for specific component
   const setProps = (component) =>
     (props) => {
@@ -29,6 +35,7 @@ export default function triggerHooks(
     routeProps: getRoutesProps(renderProps.routes),
     setProps: setProps(component),
     getProps: getProps(component),
+    isAborted: bail,
     force,
     ...getLocals(component, locals),
   });
@@ -36,14 +43,23 @@ export default function triggerHooks(
   const hookComponents = components || renderProps.components;
 
   return hooks.reduce((promise, parallelHooks) =>
-    promise.then(() =>
-      Promise.all(
+    promise.then(() => {
+      if (bail()) {
+        throw new Error(`Redial was terminated because: ${bail()}`);
+      }
+      return Promise.all(
         [].concat(parallelHooks)
           .map((hook) => trigger(hook, hookComponents, completeLocals))
-      )
-    ), Promise.resolve()
-  ).then(() => ({
-    redialMap,
-    redialProps: redialMap.dehydrate([].concat(hookComponents)),
-  }));
+      );
+    }), Promise.resolve()
+  ).then(() => {
+    if (bail()) {
+      throw new Error(`Redial was terminated because: ${bail()}`);
+    }
+
+    return {
+      redialMap,
+      redialProps: redialMap.dehydrate([].concat(hookComponents)),
+    };
+  });
 }

@@ -12,9 +12,16 @@ export default class RedialContextContainer extends React.Component {
 
   render() {
     const { Component, routerProps, ...props } = this.props;
-    const { loading, deferredLoading, reloadComponent, redialMap } = this.context.redialContext;
+    const {
+      abortLoading,
+      loading,
+      deferredLoading,
+      reloadComponent,
+      redialMap,
+    } = this.context.redialContext;
     const redialProps = redialMap.get(Component);
     const reload = () => reloadComponent(Component);
+    const abort = () => abortLoading();
     return (
       <Component
         { ...props }
@@ -23,6 +30,7 @@ export default class RedialContextContainer extends React.Component {
         loading={loading}
         deferredLoading={deferredLoading}
         reload={reload}
+        abort={abort}
       />
     );
   }

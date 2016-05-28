@@ -36,6 +36,9 @@ export default class RedialContext extends Component {
     defer: React.PropTypes.array,
     parallel: React.PropTypes.bool,
     initialLoading: React.PropTypes.func,
+    onAborted: React.PropTypes.func,
+    onStarted: React.PropTypes.func,
+    onCompleted: React.PropTypes.func,
 
     // Server
     redialMap: React.PropTypes.object,
@@ -50,9 +53,27 @@ export default class RedialContext extends Component {
       return <RouterContext { ...props } createElement={createElement} />;
     },
 
-    onError(err) {
+    onError(err, type) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error('There was an error when fetching data: ', err);
+        console.error(type, err);
+      }
+    },
+
+    onAborted() {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Loading was aborted manually');
+      }
+    },
+
+    onStarted(force) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('Loading started. Force:', force);
+      }
+    },
+
+    onCompleted() {
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('Loading completed');
       }
     },
   };
@@ -66,6 +87,8 @@ export default class RedialContext extends Component {
     this.state = {
       loading: false,
       deferredLoading: false,
+      aborted: () => false,
+      abort: () => {},
       prevProps: null,
       redialMap: props.redialMap || hydrate(props),
       initial: props.blocking.length > 0,
@@ -81,6 +104,9 @@ export default class RedialContext extends Component {
         redialMap,
         reloadComponent: (component) => {
           this.reloadComponent(component);
+        },
+        abortLoading: () => {
+          this.abort();
         },
       },
     };
@@ -106,50 +132,99 @@ export default class RedialContext extends Component {
     this.load(component, this.props, true);
   }
 
-  load(components, props, force = false) {
-    this.runBlocking(
-      this.props.blocking,
-      components,
-      props,
-      force
-    );
+  abort() {
+    // We need to be in a loading state for it to make sense
+    // to abort something
+    if (this.state.loading || this.state.deferredLoading) {
+      this.state.abort();
 
-    if (force || this.props.parallel) {
-      this.runDeferred(
-        this.props.defer,
-        components,
-        props,
-        force
-      );
+      this.setState({
+        loading: false,
+        deferredLoading: false,
+      });
+
+      if (this.props.onAborted) {
+        this.props.onAborted();
+      }
     }
   }
 
-  runDeferred(hooks, components, props, force = false) {
+  load(components, props, force = false) {
+    let isAborted = false;
+    const abort = () => {
+      isAborted = true;
+    };
+    const aborted = () => isAborted;
+
+    const bail = () => {
+      if (aborted()) {
+        return 'aborted';
+      } else if (this.props.location !== props.location) {
+        return 'location-changed';
+      }
+
+      return false;
+    };
+
+    if (this.props.onStarted) {
+      this.props.onStarted(force);
+    }
+
+    this.setState({
+      aborted,
+      abort,
+      loading: true,
+      prevProps: this.state.aborted() ? this.state.prevProps : this.props,
+    });
+
+    const promises = [this.runBlocking(
+      this.props.blocking,
+      components,
+      props,
+      force,
+      bail
+    )];
+
+    if (this.props.parallel) {
+      promises.push(this.runDeferred(
+        this.props.defer,
+        components,
+        props,
+        force,
+        bail
+      ));
+    }
+
+    Promise.all(promises)
+      .then(this.props.onCompleted)
+      .catch((err) => this.props.onError(err, bail() || 'other'));
+  }
+
+  runDeferred(hooks, components, props, force = false, bail) {
     // Get deferred data, will not block route transitions
     this.setState({
       deferredLoading: true,
     });
 
-    triggerHooks({
+    return triggerHooks({
       hooks,
       components,
       renderProps: props,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
+      bail,
     }).then(({ redialMap }) => {
       this.setState({
         deferredLoading: false,
         redialMap,
       });
-    }).catch(this.props.onError);
+    });
   }
 
-  runBlocking(hooks, components, props, force = false) {
+  runBlocking(hooks, components, props, force = false, bail) {
     const completeRouteTransition = (redialMap) => {
-      const sameLocation = this.props.location === props.location;
-
-      if (sameLocation && !this.unmounted) {
+      if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
           redialMap,
@@ -159,33 +234,30 @@ export default class RedialContext extends Component {
 
         // Start deferred if we are not in parallel
         if (!this.props.parallel) {
-          this.runDeferred(
+          return this.runDeferred(
             this.props.defer,
             components,
-            props
+            props,
+            force,
+            bail
           );
         }
       }
+
+      return Promise.resolve();
     };
 
-    this.setState({
-      loading: true,
-      prevProps: this.props,
-    });
-
-    triggerHooks({
+    return triggerHooks({
       hooks,
       components,
       renderProps: props,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
-    }).then(({ redialMap }) => {
-      completeRouteTransition(redialMap);
-    }).catch((err) => {
-      this.props.onError(err);
-      completeRouteTransition(this.state.redialMap);
-    });
+      bail,
+    }).then(({ redialMap }) =>
+      completeRouteTransition(redialMap)
+    );
   }
 
   render() {
@@ -193,7 +265,7 @@ export default class RedialContext extends Component {
       return this.props.initialLoading();
     }
 
-    const props = this.state.loading ? this.state.prevProps : this.props;
+    const props = this.state.loading || this.state.aborted() ? this.state.prevProps : this.props;
     return this.props.render(props);
   }
 }
