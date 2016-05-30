@@ -3,6 +3,7 @@ import isPlainObject from 'lodash.isplainobject';
 import createMap from './createMap';
 import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
+import getAllComponents from './getAllComponents';
 
 export default function triggerHooks({
   hooks,
@@ -40,7 +41,7 @@ export default function triggerHooks({
     ...getLocals(component, locals),
   });
 
-  const hookComponents = components || renderProps.components;
+  const hookComponents = getAllComponents(components || renderProps.components);
 
   return hooks.reduce((promise, parallelHooks) =>
     promise.then(() => {
