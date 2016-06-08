@@ -34,4 +34,11 @@ describe('getAllComponents', () => {
       expect(getAllComponents(renderProps.components).length).toEqual(3);
     });
   });
+
+  it('should manage a single component correctly', () => {
+    const MockComponent = () => (
+      <div></div>
+    );
+    expect(getAllComponents(MockComponent).length).toEqual(1);
+  });
 });

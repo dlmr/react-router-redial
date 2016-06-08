@@ -12,7 +12,7 @@
     "release": "node ./scripts/release.js",
     "prepublish": "npm run build",
     "test:unit": "cross-env NODE_ENV=test mocha --compilers js:babel-register tests/**/*.test.js",
-    "test:coverage": "nyc npm run --reporter=text-summary --reporter=lcov test:unit",
+    "test:coverage": "nyc --include / --reporter=text-summary --reporter=lcov npm run test:unit",
     "test": "npm run lint && npm run test:coverage"
   },
   "repository": {
