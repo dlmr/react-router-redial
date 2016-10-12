@@ -4,6 +4,7 @@ import createMap from './createMap';
 import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
 import getAllComponents from './getAllComponents';
+import createMapKeys from './util/map-keys';
 
 export default function triggerHooks({
   hooks,
@@ -15,31 +16,36 @@ export default function triggerHooks({
   redialMap = createMap(),
 }) {
   // Set props for specific component
-  const setProps = (component) =>
+  const setProps = (key) =>
     (props) => {
       if (!isPlainObject(props)) {
         throw new Error('The input to setProps needs to be an object');
       }
-      redialMap.set(component, {
-        ...redialMap.get(component),
+      redialMap.set(key, {
+        ...redialMap.get(key),
         ...props,
       });
     };
 
   // Get components for a specific component
-  const getProps = (component) =>
-    () => redialMap.get(component) || {};
+  const getProps = (key) =>
+    () => redialMap.get(key) || {};
 
-  const completeLocals = (component) => ({
-    location: renderProps.location,
-    params: renderProps.params,
-    routeProps: getRoutesProps(renderProps.routes),
-    setProps: setProps(component),
-    getProps: getProps(component),
-    isAborted: bail,
-    force,
-    ...getLocals(component, locals),
-  });
+  const getMapKeyForComponent = createMapKeys(renderProps.routes);
+
+  const completeLocals = (component) => {
+    const key = getMapKeyForComponent(component);
+    return ({
+      location: renderProps.location,
+      params: renderProps.params,
+      routeProps: getRoutesProps(renderProps.routes),
+      setProps: setProps(key),
+      getProps: getProps(key),
+      isAborted: bail,
+      force,
+      ...getLocals(component, locals),
+    });
+  };
 
   const hookComponents = getAllComponents(components || renderProps.components);
 
@@ -60,7 +66,7 @@ export default function triggerHooks({
 
     return {
       redialMap,
-      redialProps: redialMap.dehydrate([].concat(hookComponents)),
+      redialProps: redialMap.dehydrate(hookComponents.map(getMapKeyForComponent)),
     };
   });
 }

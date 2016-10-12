@@ -1,21 +1,16 @@
 /* global __REDIAL_PROPS__ */
 
-import React, { Component } from 'react';
-import RouterContext from 'react-router/lib/RouterContext';
+import React, { Component, PropTypes } from 'react';
 
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
-import RedialContextContainer from './RedialContextContainer';
-
-function createElement(component, props) {
-  return (
-    <RedialContextContainer Component={component} routerProps={props} />
-  );
-}
+import createMapKeys from './util/map-keys';
 
 function hydrate(props) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
-    return createMap(props.components, __REDIAL_PROPS__);
+    const getMapKeyForComponent = createMapKeys(props.routes);
+    const componentKeys = props.components.map(getMapKeyForComponent);
+    return createMap(componentKeys, __REDIAL_PROPS__);
   }
 
   return createMap();
@@ -23,35 +18,33 @@ function hydrate(props) {
 
 export default class RedialContext extends Component {
   static propTypes = {
+    children: PropTypes.node.isRequired,
+
     // RouterContext default
-    components: React.PropTypes.array.isRequired,
-    params: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired,
-    render: React.PropTypes.func,
-    onError: React.PropTypes.func,
+    components: PropTypes.array.isRequired,
+    params: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    render: PropTypes.func,
+    onError: PropTypes.func,
 
     // Custom
-    locals: React.PropTypes.object,
-    blocking: React.PropTypes.array,
-    defer: React.PropTypes.array,
-    parallel: React.PropTypes.bool,
-    initialLoading: React.PropTypes.func,
-    onAborted: React.PropTypes.func,
-    onStarted: React.PropTypes.func,
-    onCompleted: React.PropTypes.func,
+    locals: PropTypes.object,
+    blocking: PropTypes.array,
+    defer: PropTypes.array,
+    parallel: PropTypes.bool,
+    initialLoading: PropTypes.func,
+    onAborted: PropTypes.func,
+    onStarted: PropTypes.func,
+    onCompleted: PropTypes.func,
 
     // Server
-    redialMap: React.PropTypes.object,
+    redialMap: PropTypes.object,
   };
 
   static defaultProps = {
     blocking: [],
     defer: [],
     parallel: false,
-
-    render(props) {
-      return <RouterContext { ...props } createElement={createElement} />;
-    },
 
     onError(err, type) {
       if (process.env.NODE_ENV !== 'production') {
@@ -79,7 +72,7 @@ export default class RedialContext extends Component {
   };
 
   static childContextTypes = {
-    redialContext: React.PropTypes.object,
+    redialContext: PropTypes.object,
   };
 
   constructor(props, context) {
@@ -129,7 +122,7 @@ export default class RedialContext extends Component {
   }
 
   reloadComponent(component) {
-    this.load(component, this.props, true);
+    this.load([component], this.props, true);
   }
 
   abort() {
@@ -265,7 +258,9 @@ export default class RedialContext extends Component {
       return this.props.initialLoading();
     }
 
-    const props = this.state.loading || this.state.aborted() ? this.state.prevProps : this.props;
-    return this.props.render(props);
+    // const props = this.state.loading || this.state.aborted() ? this.state.prevProps : this.props;
+    // return this.props.render(props);
+
+    return this.props.children;
   }
 }
