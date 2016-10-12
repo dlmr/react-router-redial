@@ -12,12 +12,20 @@ nunjucks.configure(__dirname);
 const server = koa();
 server.use(function *() {
   const store = configureStore();
-  const result = yield render(this.url, routes, store);
-  this.body = nunjucks.render('template.html', {
-    ...result,
-    state: JSON.stringify(result.state),
-    redialProps: JSON.stringify(result.redialProps)
-  });
+  try {
+    const result = yield render(this.url, routes, store);
+    this.body = nunjucks.render('template.html', {
+      ...result,
+      state: JSON.stringify(result.state),
+      redialProps: JSON.stringify(result.redialProps),
+    });
+  } catch (e) {
+    if (e) {
+      this.status = 500;
+    } else {
+      this.status = 404;
+    }
+  }
 });
 
 server.listen(3000);
