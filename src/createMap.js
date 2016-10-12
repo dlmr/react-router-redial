@@ -36,11 +36,5 @@ export default function createMap(possibleKeys, allValues) {
     size,
     dehydrate,
     rehydrate,
-    dump() {
-      return {
-        keys,
-        values,
-      };
-    },
   };
 }
