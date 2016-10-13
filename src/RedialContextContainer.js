@@ -5,7 +5,6 @@ export default class RedialContextContainer extends React.Component {
   static propTypes = {
     children: React.PropTypes.element.isRequired,
     routerProps: React.PropTypes.object.isRequired,
-    mapKey: React.PropTypes.string.isRequired,
   };
 
   static contextTypes = {
@@ -29,8 +28,8 @@ export default class RedialContextContainer extends React.Component {
       this.props.children,
       {
         ...props,
-        ...routerProps,
         ...redialProps,
+        ...routerProps,
         loading,
         deferredLoading,
         reload,

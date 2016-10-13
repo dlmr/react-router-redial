@@ -82,7 +82,7 @@ export default class RedialContext extends Component {
       deferredLoading: false,
       aborted: () => false,
       abort: () => {},
-      prevProps: null,
+      prevProps: undefined,
       redialMap: props.redialMap || hydrate(props),
       initial: props.blocking.length > 0,
     };
@@ -122,7 +122,7 @@ export default class RedialContext extends Component {
   }
 
   reloadComponent(component) {
-    this.load([component], this.props, true);
+    this.load(component, this.props, true);
   }
 
   abort() {
@@ -221,7 +221,7 @@ export default class RedialContext extends Component {
         this.setState({
           loading: false,
           redialMap,
-          prevProps: null,
+          prevProps: undefined,
           initial: false,
         });
 
@@ -258,8 +258,16 @@ export default class RedialContext extends Component {
       return this.props.initialLoading();
     }
 
-    // const props = this.state.loading || this.state.aborted() ? this.state.prevProps : this.props;
-    // return this.props.render(props);
+    if (this.state.loading || this.state.aborted()) {
+      /* eslint-disable no-unused-vars */
+      // Omit `createElement`. Otherwise we might miss `renderRouteContext` in `applyMiddleware`.
+      const { createElement, ...routerProps } = this.state.prevProps.routerProps;
+      /* eslint-enable no-unused-vars */
+      return React.cloneElement(
+        this.props.children,
+        routerProps,
+      );
+    }
 
     return this.props.children;
   }
