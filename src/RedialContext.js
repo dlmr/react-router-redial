@@ -6,10 +6,10 @@ import triggerHooks from './triggerHooks';
 import createMap from './createMap';
 import createMapKeys from './util/map-keys';
 
-function hydrate(props) {
+function hydrate(renderProps) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
-    const getMapKeyForComponent = createMapKeys(props.routes);
-    const componentKeys = props.components.map(getMapKeyForComponent);
+    const getMapKeyForComponent = createMapKeys(renderProps.routes);
+    const componentKeys = renderProps.components.map(getMapKeyForComponent);
     return createMap(componentKeys, __REDIAL_PROPS__);
   }
 
@@ -21,11 +21,7 @@ export default class RedialContext extends Component {
     children: PropTypes.node.isRequired,
 
     // RouterContext default
-    components: PropTypes.array.isRequired,
-    params: PropTypes.object.isRequired,
-    location: PropTypes.object.isRequired,
-    render: PropTypes.func,
-    onError: PropTypes.func,
+    renderProps: PropTypes.object.isRequired,
 
     // Custom
     locals: PropTypes.object,
@@ -33,6 +29,7 @@ export default class RedialContext extends Component {
     defer: PropTypes.array,
     parallel: PropTypes.bool,
     initialLoading: PropTypes.func,
+    onError: PropTypes.func,
     onAborted: PropTypes.func,
     onStarted: PropTypes.func,
     onCompleted: PropTypes.func,
@@ -82,8 +79,8 @@ export default class RedialContext extends Component {
       deferredLoading: false,
       aborted: () => false,
       abort: () => {},
-      prevProps: undefined,
-      redialMap: props.redialMap || hydrate(props),
+      prevRenderProps: undefined,
+      redialMap: props.redialMap || hydrate(props.renderProps),
       initial: props.blocking.length > 0,
     };
   }
@@ -106,15 +103,15 @@ export default class RedialContext extends Component {
   }
 
   componentDidMount() {
-    this.load(this.props.components, this.props);
+    this.load(this.props.renderProps.components, this.props.renderProps);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.location === this.props.location) {
+    if (nextProps.renderProps.location === this.props.renderProps.location) {
       return;
     }
 
-    this.load(nextProps.components, nextProps);
+    this.load(nextProps.renderProps.components, nextProps.renderProps);
   }
 
   componentWillUnmount() {
@@ -122,7 +119,7 @@ export default class RedialContext extends Component {
   }
 
   reloadComponent(component) {
-    this.load(component, this.props, true);
+    this.load(component, this.props.renderProps, true);
   }
 
   abort() {
@@ -142,7 +139,7 @@ export default class RedialContext extends Component {
     }
   }
 
-  load(components, props, force = false) {
+  load(components, renderProps, force = false) {
     let isAborted = false;
     const abort = () => {
       isAborted = true;
@@ -150,9 +147,10 @@ export default class RedialContext extends Component {
     const aborted = () => isAborted;
 
     const bail = () => {
+      const currentLocation = this.props.renderProps.location;
       if (aborted()) {
         return 'aborted';
-      } else if (this.props.location !== props.location) {
+      } else if (currentLocation !== renderProps.location) {
         return 'location-changed';
       }
 
@@ -167,13 +165,13 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
-      prevProps: this.state.aborted() ? this.state.prevProps : this.props,
+      prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
     const promises = [this.runBlocking(
       this.props.blocking,
       components,
-      props,
+      renderProps,
       force,
       bail
     )];
@@ -182,7 +180,7 @@ export default class RedialContext extends Component {
       promises.push(this.runDeferred(
         this.props.defer,
         components,
-        props,
+        renderProps,
         force,
         bail
       ));
@@ -193,7 +191,7 @@ export default class RedialContext extends Component {
       .catch((err) => this.props.onError(err, bail() || 'other'));
   }
 
-  runDeferred(hooks, components, props, force = false, bail) {
+  runDeferred(hooks, components, renderProps, force = false, bail) {
     // Get deferred data, will not block route transitions
     this.setState({
       deferredLoading: true,
@@ -202,7 +200,7 @@ export default class RedialContext extends Component {
     return triggerHooks({
       hooks,
       components,
-      renderProps: props,
+      renderProps,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
@@ -215,13 +213,13 @@ export default class RedialContext extends Component {
     });
   }
 
-  runBlocking(hooks, components, props, force = false, bail) {
+  runBlocking(hooks, components, renderProps, force = false, bail) {
     const completeRouteTransition = (redialMap) => {
       if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
           redialMap,
-          prevProps: undefined,
+          prevRenderProps: undefined,
           initial: false,
         });
 
@@ -230,7 +228,7 @@ export default class RedialContext extends Component {
           return this.runDeferred(
             this.props.defer,
             components,
-            props,
+            renderProps,
             force,
             bail
           );
@@ -243,7 +241,7 @@ export default class RedialContext extends Component {
     return triggerHooks({
       hooks,
       components,
-      renderProps: props,
+      renderProps,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
@@ -260,12 +258,12 @@ export default class RedialContext extends Component {
 
     if (this.state.loading || this.state.aborted()) {
       /* eslint-disable no-unused-vars */
-      // Omit `createElement`. Otherwise we might miss `renderRouteContext` in `applyMiddleware`.
-      const { createElement, ...routerProps } = this.state.prevProps.routerProps;
+      // Omit `createElement`. Otherwise we might skip `renderRouteContext` in `applyMiddleware`.
+      const { createElement, ...prevRenderProps } = this.state.prevRenderProps;
       /* eslint-enable no-unused-vars */
       return React.cloneElement(
         this.props.children,
-        routerProps,
+        prevRenderProps,
       );
     }
 
