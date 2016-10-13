@@ -22,7 +22,6 @@ export default (container, routes, store) => {
         blocking: ['fetch', 'blockingDone'],
         defer: ['defer', 'deferDone'],
         parallel: false,
-        initialLoading: () => <div>Loading…</div>,
       }))}
     />
   );

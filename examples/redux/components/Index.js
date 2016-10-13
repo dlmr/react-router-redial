@@ -40,5 +40,4 @@ export default class Index extends Component {
         <pre>{ JSON.stringify(this.props, null, 2) }</pre>
       </div>
     );
-  }
-}
+  }}

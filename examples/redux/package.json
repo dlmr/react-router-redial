@@ -10,8 +10,11 @@
     "isomorphic-fetch": "2.2.1",
     "koa": "1.2.0",
     "nunjucks": "2.4.2",
-    "react": "15.0.2",
-    "react-dom": "15.0.2",
+    "react": "^15.0.2",
+    "react-dom": "^15.0.2",
+    "react-router": "^2.5.2",
+    "react-router-redial": "^0.1.3",
+    "redial": "^0.4.1",
     "redux-devtools": "3.2.0",
     "redux-devtools-dock-monitor": "1.1.1",
     "redux-devtools-log-monitor": "1.0.11",
@@ -30,7 +33,6 @@
     "koa-webpack-dev-middleware": "1.2.0",
     "react-router": "^2.5.2",
     "react-router-redial": "0.1.3",
-    "redial": "^0.4.1",
     "webpack": "1.13.0",
     "webpack-hot-middleware": "2.10.0"
   }

@@ -1,32 +1,45 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router';
+import React, { Component, PropTypes } from 'react';
+import { withRouter } from 'react-router';
 
-export default class Github extends Component {
+class Github extends Component {
+
+  static propTypes = {
+    router: PropTypes.shape({
+      push: PropTypes.func.isRequired,
+    }),
+    children: PropTypes.node,
+  };
 
   constructor(props) {
     super(props);
-    this.state = {value: ''};
+    this.state = { value: '' };
   }
 
   onChange = (e) => {
-    this.setState({value: e.target.value});
-  }
+    this.setState({ value: e.target.value });
+  };
 
   render() {
-    const children = this.props.children ?
-      this.props.children :
-      (
-        <div>
-          <p>Please select a user by typing and clicking the link</p>
-          <input onChange={this.onChange} />&nbsp;
-          <Link to={{ pathname: `/github/user/${this.state.value}` }}>Open user!</Link>
-        </div>
-      );
     return (
       <div>
         <h2>Github</h2>
-        { children }
+        <div>
+          <p>Please select a user by typing and clicking the link</p>
+          <input onChange={this.onChange} />
+          {' '}
+          <button
+            type="button"
+            onClick={() =>
+              this.props.router.push({ pathname: `/github/user/${this.state.value}` })
+            }
+          >
+            Open user!
+          </button>
+        </div>
+        {this.props.children}
       </div>
     );
   }
 }
+
+export default withRouter(Github);

@@ -11,7 +11,7 @@ import fetch from 'isomorphic-fetch';
     }
   }
 })
-export default class Index extends Component {
+export default class User extends Component {
   render() {
     return (
       <div>
