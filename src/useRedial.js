@@ -5,8 +5,8 @@ import RedialContextContainer from './RedialContextContainer';
 
 export default function useRedial(options) {
   return {
-    renderRouterContext: (child, routerProps) => (
-      <RedialContext routerProps={routerProps} {...options}>
+    renderRouterContext: (child, props) => (
+      <RedialContext renderProps={props} {...options}>
         {child}
       </RedialContext>
     ),
