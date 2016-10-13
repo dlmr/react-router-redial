@@ -11,7 +11,7 @@
     "lint": "eslint src",
     "release": "node ./scripts/release.js",
     "prepublish": "npm run build",
-    "test:unit": "cross-env NODE_ENV=test mocha --compilers js:babel-register tests/**/*.test.js",
+    "test:unit": "cross-env NODE_ENV=test mocha tests --recursive --compilers js:babel-register",
     "test:coverage": "nyc --include / --reporter=text-summary --reporter=lcov npm run test:unit",
     "test": "npm run lint && npm run test:coverage"
   },
