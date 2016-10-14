@@ -43,7 +43,7 @@ export default class RedialContext extends Component {
     defer: [],
     parallel: false,
 
-    onError(err, type) {
+    onError(err, { type }) {
       if (process.env.NODE_ENV !== 'production') {
         console.error(type, err);
       }
@@ -65,9 +65,9 @@ export default class RedialContext extends Component {
       }
     },
 
-    onCompleted() {
+    onCompleted(type) {
       if (process.env.NODE_ENV !== 'production') {
-        console.info('Loading completed');
+        console.info('Loading completed. Type:', type);
       }
     },
   };
@@ -172,30 +172,40 @@ export default class RedialContext extends Component {
       prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
-    const promises = [this.runBlocking(
-      this.props.blocking,
-      components,
-      renderProps,
-      force,
-      bail
-    )];
-
     if (this.props.parallel) {
-      promises.push(this.runDeferred(
+      this.runDeferred(
         this.props.defer,
         components,
         renderProps,
         force,
         bail
-      ));
+      )
+      .then(() => this.props.onCompleted('deferred'))
+      .catch((err) => {
+        this.props.onError(err, {
+          reason: bail() || 'other',
+          blocking: false,
+          router: this.props.renderProps.router,
+          abort: () => this.abort(true),
+        });
+      });
     }
 
-    Promise.all(promises)
-      .then(this.props.onCompleted)
-      .catch((err) => {
-        this.props.onError(err, bail() || 'other');
-        this.abort(true);
+    this.runBlocking(
+      this.props.blocking,
+      components,
+      renderProps,
+      force,
+      bail
+    )
+    .catch((error) => {
+      this.props.onError(error, {
+        reason: bail() || 'other',
+        blocking: error.deferred === undefined, // If not defined before it's a blocking error
+        router: this.props.renderProps.router,
+        abort: () => this.abort(true),
       });
+    });
   }
 
   runDeferred(hooks, components, renderProps, force = false, bail) {
@@ -230,6 +240,8 @@ export default class RedialContext extends Component {
           initial: false,
         });
 
+        this.props.onCompleted('blocking');
+
         // Start deferred if we are not in parallel
         if (!this.props.parallel) {
           return this.runDeferred(
@@ -238,7 +250,12 @@ export default class RedialContext extends Component {
             renderProps,
             force,
             bail
-          );
+          )
+          .then(() => this.props.onCompleted('deferred'))
+          .catch((error) => {
+            error.deferred = true; // eslint-disable-line
+            return Promise.reject(error);
+          });
         }
       }
 
@@ -263,14 +280,15 @@ export default class RedialContext extends Component {
       return this.props.initialLoading();
     }
 
-    if (this.state.loading || this.state.aborted()) {
+    const props = (this.state.loading || this.state.aborted()) && this.state.prevRenderProps;
+    if (props) {
       /* eslint-disable no-unused-vars */
       // Omit `createElement`. Otherwise we might skip `renderRouteContext` in `applyMiddleware`.
-      const { createElement, ...prevRenderProps } = this.state.prevRenderProps;
+      const { createElement, ...prevProps } = props;
       /* eslint-enable no-unused-vars */
       return React.cloneElement(
         this.props.children,
-        prevRenderProps,
+        prevProps,
       );
     }
 
