@@ -27,6 +27,12 @@ export default class App extends Component {
           <li>
             <Link to="/github">Github</Link>
           </li>
+          <li>
+            <Link to="/fetch">Fetch, with client error</Link>
+          </li>
+          <li>
+            <Link to="/defer">Defer, with client error</Link>
+          </li>
         </ul>
         {this.props.children}
       </div>

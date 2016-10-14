@@ -6,6 +6,27 @@ import { Router, browserHistory, applyRouterMiddleware } from 'react-router';
 
 // Render the app client-side to a given container element:
 export default (container, routes) => {
+  const forcePageReloadOnError = true;
+  const goBackOnError = false;
+
+  // Function that can be used as a setting for useRedial
+  function onError(err, { abort, blocking, reason, router }) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(reason, err);
+    }
+
+    // We only what to do this if it was a blocking hook that failed
+    if (blocking) {
+      if (forcePageReloadOnError) {
+        window.location.reload();
+      } else if (goBackOnError) {
+        router.goBack();
+      }
+      // Abort current loading automatically
+      abort();
+    }
+  }
+
   const component = (
     <Router
       history={browserHistory}
@@ -15,6 +36,7 @@ export default (container, routes) => {
         defer: ['defer', 'done'],
         parallel: false,
         initialLoading: () => <div>Loading…</div>,
+        onError,
       }))}
     />
   );

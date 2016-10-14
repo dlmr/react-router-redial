@@ -5,6 +5,8 @@ import App from './components/App';
 import Index from './components/Index';
 import Github from './components/Github';
 import User from './components/User';
+import Fetch from './components/Fetch';
+import Defer from './components/Defer';
 
 export default (
   <Route path="/" component={App}>
@@ -12,5 +14,7 @@ export default (
     <Route path="github" component={Github}>
        <Route path="user/:id" component={User} />
     </Route>
+    <Route path="fetch" component={Fetch} />
+    <Route path="defer" component={Defer} />
   </Route>
 )
