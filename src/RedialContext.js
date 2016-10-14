@@ -49,9 +49,13 @@ export default class RedialContext extends Component {
       }
     },
 
-    onAborted() {
+    onAborted(becauseError) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('Loading was aborted manually');
+        if (becauseError) {
+          console.warn('Loading was aborted from an error');
+        } else {
+          console.warn('Loading was aborted manually');
+        }
       }
     },
 
@@ -122,7 +126,7 @@ export default class RedialContext extends Component {
     this.load(component, this.props.renderProps, true);
   }
 
-  abort() {
+  abort(becauseError) {
     // We need to be in a loading state for it to make sense
     // to abort something
     if (this.state.loading || this.state.deferredLoading) {
@@ -134,7 +138,7 @@ export default class RedialContext extends Component {
       });
 
       if (this.props.onAborted) {
-        this.props.onAborted();
+        this.props.onAborted(becauseError);
       }
     }
   }
@@ -188,7 +192,10 @@ export default class RedialContext extends Component {
 
     Promise.all(promises)
       .then(this.props.onCompleted)
-      .catch((err) => this.props.onError(err, bail() || 'other'));
+      .catch((err) => {
+        this.props.onError(err, bail() || 'other');
+        this.abort(true);
+      });
   }
 
   runDeferred(hooks, components, renderProps, force = false, bail) {
