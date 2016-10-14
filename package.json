@@ -26,6 +26,7 @@
     "data fetching"
   ],
   "author": "Gustaf Dalemar",
+  "contributors": ["Patrik Åkerstrand <patrik.akerstrand@schibsted.se>"],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/dlmr/react-router-redial/issues"
