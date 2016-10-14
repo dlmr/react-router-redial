@@ -95,7 +95,7 @@ import { applyRouterMiddleware } from 'react-router';
   history={ browserHistory }
   routes={ routes }
   render={ applyRouterMiddleware(
-    useRedial({ 
+    useRedial({
         locals,
         blocking: ['fetch'],
         defer: ['defer', 'done'],
@@ -176,7 +176,7 @@ export default (container, store) => {
       history={browserHistory}
       routes={routes}
       render={ applyRouterMiddleware(
-        useRedial({ 
+        useRedial({
           locals,
           blocking: ['fetch'],
           defer: ['defer', 'done'],
@@ -253,6 +253,10 @@ export default (path, store) => new Promise((resolve, reject) => {
   });
 });
 ```
+
+## Contributors
+- [Gustaf Dalemar](https://github.com/dlmr) - author
+- [Patrik Åkerstrand](https://github.com/PAkerstrand) - Rewrote as a middleware
 
 [build-badge]: https://img.shields.io/travis/dlmr/react-router-redial/master.svg?style=flat-square
 [build]: https://travis-ci.org/dlmr/react-router-redial
