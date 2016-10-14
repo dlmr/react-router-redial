@@ -74,7 +74,7 @@ abort             Function that can be invoked to abort current running hooks
 Additionally components will have access to properties that has been set using `setProps`.
 
 ## Client API
-The custom router context `RedialContext` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
+The custom redial router middleware `useRedial` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
 ```
 locals                Extra locals that should be provided to the hooks other than the default ones
 blocking              Hooks that should be completed before a route transition is completed
@@ -88,20 +88,20 @@ onCompleted           Invoked if everything was completed successfully, both blo
 ```
 
 ```js
-import { RedialContext } from 'react-router-redial';
+import { useRedial } from 'react-router-redial';
+import { applyRouterMiddleware } from 'react-router';
 
 <Router
   history={ browserHistory }
   routes={ routes }
-  render={ (props) => (
-    <RedialContext
-      { ...props }
-      locals={ locals }
-      blocking={ ['fetch'] }
-      defer={ ['defer', 'done' ] }
-      parallel={ true }
-      initialLoading={ () => <div>Loading…</div> }
-    />
+  render={ applyRouterMiddleware(
+    useRedial({ 
+        locals,
+        blocking: ['fetch'],
+        defer: ['defer', 'done'],
+        parallel: true,
+        initialLoading: () => <div>Loading…</div>,
+    })
   )}
 />
 ```
@@ -153,11 +153,11 @@ This means that the `fetch` and `defer` hooks will run at the same time and afte
 
 ### Client
 ```js
-import { RedialContext } from 'react-router-redial';
+import { useRedial } from 'react-router-redial';
 
 import React from 'react';
 import { render } from 'react-dom';
-import { Router, browserHistory } from 'react-router';
+import { Router, browserHistory, applyRouterMiddleware } from 'react-router';
 import { Provider } from 'react-redux';
 
 // Your app's routes:
@@ -175,15 +175,14 @@ export default (container, store) => {
     <Router
       history={browserHistory}
       routes={routes}
-      render={(props) => (
-        <RedialContext
-          { ...props }
-          locals={locals}
-          blocking={['fetch']}
-          defer={['defer', 'done']}
-          parallel={false}
-          initialLoading={() => <div>Loading…</div>}
-        />
+      render={ applyRouterMiddleware(
+        useRedial({ 
+          locals,
+          blocking: ['fetch'],
+          defer: ['defer', 'done'],
+          parallel: true,
+          initialLoading: () => <div>Loading…</div>,
+        })
       )}
     />
   );
@@ -203,11 +202,11 @@ export default (container, store) => {
 
 ### Server
 ```js
-import { triggerHooks, RedialContext } from 'react-router-redial';
+import { triggerHooks, useRedial } from 'react-router-redial';
 
 import React from 'react';
 import { renderToString } from 'react-dom/server';
-import { createMemoryHistory, match } from 'react-router';
+import { createMemoryHistory, match, applyRouterMiddleware } from 'react-router';
 import { Provider } from 'react-redux';
 
 // Your app's routes:
@@ -234,7 +233,12 @@ export default (path, store) => new Promise((resolve, reject) => {
       hooks: [ 'fetch', 'done' ]
     }).then(({ redialMap, redialProps }) => {
       const state = store ? store.getState() : null;
-      const component = <RedialContext {...renderProps} redialMap={ redialMap } />;
+      // Use `applyRouterMiddleware` to create the `<RouterContext/>`,
+      // as well as the `<RedialContext/>` and `<RedialContextContainer/>`
+      // around each matched route. Pass in the `redialMap` to the middleware
+      // to ensure we have access to it while rendering, and
+      // pass the renderProps provided from `match`
+      const component = applyRouterMiddleware(useRedial({ redialMap }))(renderProps);
       const html = store ? renderToString(
         <Provider store={store}>
           { component }

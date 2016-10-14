@@ -1,4 +1,5 @@
 import { useRedial } from 'react-router-redial';
+import { useScroll } from 'react-router-scroll';
 
 import React from 'react';
 import { render } from 'react-dom';
@@ -10,12 +11,15 @@ export default (container, routes) => {
     <Router
       history={browserHistory}
       routes={routes}
-      render={applyRouterMiddleware(useRedial({
-        blocking: ['fetch'],
-        defer: ['defer', 'done'],
-        parallel: false,
-        initialLoading: () => <div>Loading…</div>,
-      }))}
+      render={applyRouterMiddleware(
+        useScroll(), 
+        useRedial({
+          blocking: ['fetch'],
+          defer: ['defer', 'done'],
+          parallel: false,
+          initialLoading: () => <div>Loading…</div>,
+        })
+      )}
     />
   );
 

@@ -6,7 +6,10 @@ export default function fetchGithubUser(userId) {
         .then((response) => response.json())
         .then((user) => dispatch({
           type: 'USER_LOADED',
-          payload: user
+          payload: user,
+          meta: {
+            id: userId.toLowerCase(),
+          }
         }))
     }
 }

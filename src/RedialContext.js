@@ -1,21 +1,16 @@
 /* global __REDIAL_PROPS__ */
 
-import React, { Component } from 'react';
-import RouterContext from 'react-router/lib/RouterContext';
+import React, { Component, PropTypes } from 'react';
 
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
-import RedialContextContainer from './RedialContextContainer';
+import createMapKeys from './util/mapKeys';
 
-function createElement(component, props) {
-  return (
-    <RedialContextContainer Component={component} routerProps={props} />
-  );
-}
-
-function hydrate(props) {
+function hydrate(renderProps) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
-    return createMap(props.components, __REDIAL_PROPS__);
+    const getMapKeyForComponent = createMapKeys(renderProps.routes);
+    const componentKeys = renderProps.components.map(getMapKeyForComponent);
+    return createMap(componentKeys, __REDIAL_PROPS__);
   }
 
   return createMap();
@@ -23,35 +18,30 @@ function hydrate(props) {
 
 export default class RedialContext extends Component {
   static propTypes = {
+    children: PropTypes.node.isRequired,
+
     // RouterContext default
-    components: React.PropTypes.array.isRequired,
-    params: React.PropTypes.object.isRequired,
-    location: React.PropTypes.object.isRequired,
-    render: React.PropTypes.func,
-    onError: React.PropTypes.func,
+    renderProps: PropTypes.object.isRequired,
 
     // Custom
-    locals: React.PropTypes.object,
-    blocking: React.PropTypes.array,
-    defer: React.PropTypes.array,
-    parallel: React.PropTypes.bool,
-    initialLoading: React.PropTypes.func,
-    onAborted: React.PropTypes.func,
-    onStarted: React.PropTypes.func,
-    onCompleted: React.PropTypes.func,
+    locals: PropTypes.object,
+    blocking: PropTypes.array,
+    defer: PropTypes.array,
+    parallel: PropTypes.bool,
+    initialLoading: PropTypes.func,
+    onError: PropTypes.func,
+    onAborted: PropTypes.func,
+    onStarted: PropTypes.func,
+    onCompleted: PropTypes.func,
 
     // Server
-    redialMap: React.PropTypes.object,
+    redialMap: PropTypes.object,
   };
 
   static defaultProps = {
     blocking: [],
     defer: [],
     parallel: false,
-
-    render(props) {
-      return <RouterContext { ...props } createElement={createElement} />;
-    },
 
     onError(err, type) {
       if (process.env.NODE_ENV !== 'production') {
@@ -79,7 +69,7 @@ export default class RedialContext extends Component {
   };
 
   static childContextTypes = {
-    redialContext: React.PropTypes.object,
+    redialContext: PropTypes.object,
   };
 
   constructor(props, context) {
@@ -89,8 +79,8 @@ export default class RedialContext extends Component {
       deferredLoading: false,
       aborted: () => false,
       abort: () => {},
-      prevProps: null,
-      redialMap: props.redialMap || hydrate(props),
+      prevRenderProps: undefined,
+      redialMap: props.redialMap || hydrate(props.renderProps),
       initial: props.blocking.length > 0,
     };
   }
@@ -113,15 +103,15 @@ export default class RedialContext extends Component {
   }
 
   componentDidMount() {
-    this.load(this.props.components, this.props);
+    this.load(this.props.renderProps.components, this.props.renderProps);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.location === this.props.location) {
+    if (nextProps.renderProps.location === this.props.renderProps.location) {
       return;
     }
 
-    this.load(nextProps.components, nextProps);
+    this.load(nextProps.renderProps.components, nextProps.renderProps);
   }
 
   componentWillUnmount() {
@@ -129,7 +119,7 @@ export default class RedialContext extends Component {
   }
 
   reloadComponent(component) {
-    this.load(component, this.props, true);
+    this.load(component, this.props.renderProps, true);
   }
 
   abort() {
@@ -149,7 +139,7 @@ export default class RedialContext extends Component {
     }
   }
 
-  load(components, props, force = false) {
+  load(components, renderProps, force = false) {
     let isAborted = false;
     const abort = () => {
       isAborted = true;
@@ -157,9 +147,10 @@ export default class RedialContext extends Component {
     const aborted = () => isAborted;
 
     const bail = () => {
+      const currentLocation = this.props.renderProps.location;
       if (aborted()) {
         return 'aborted';
-      } else if (this.props.location !== props.location) {
+      } else if (currentLocation !== renderProps.location) {
         return 'location-changed';
       }
 
@@ -174,13 +165,13 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
-      prevProps: this.state.aborted() ? this.state.prevProps : this.props,
+      prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
     const promises = [this.runBlocking(
       this.props.blocking,
       components,
-      props,
+      renderProps,
       force,
       bail
     )];
@@ -189,7 +180,7 @@ export default class RedialContext extends Component {
       promises.push(this.runDeferred(
         this.props.defer,
         components,
-        props,
+        renderProps,
         force,
         bail
       ));
@@ -200,7 +191,7 @@ export default class RedialContext extends Component {
       .catch((err) => this.props.onError(err, bail() || 'other'));
   }
 
-  runDeferred(hooks, components, props, force = false, bail) {
+  runDeferred(hooks, components, renderProps, force = false, bail) {
     // Get deferred data, will not block route transitions
     this.setState({
       deferredLoading: true,
@@ -209,7 +200,7 @@ export default class RedialContext extends Component {
     return triggerHooks({
       hooks,
       components,
-      renderProps: props,
+      renderProps,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
@@ -222,13 +213,13 @@ export default class RedialContext extends Component {
     });
   }
 
-  runBlocking(hooks, components, props, force = false, bail) {
+  runBlocking(hooks, components, renderProps, force = false, bail) {
     const completeRouteTransition = (redialMap) => {
       if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
           redialMap,
-          prevProps: null,
+          prevRenderProps: undefined,
           initial: false,
         });
 
@@ -237,7 +228,7 @@ export default class RedialContext extends Component {
           return this.runDeferred(
             this.props.defer,
             components,
-            props,
+            renderProps,
             force,
             bail
           );
@@ -250,7 +241,7 @@ export default class RedialContext extends Component {
     return triggerHooks({
       hooks,
       components,
-      renderProps: props,
+      renderProps,
       redialMap: this.state.redialMap,
       locals: this.props.locals,
       force,
@@ -265,7 +256,17 @@ export default class RedialContext extends Component {
       return this.props.initialLoading();
     }
 
-    const props = this.state.loading || this.state.aborted() ? this.state.prevProps : this.props;
-    return this.props.render(props);
+    if (this.state.loading || this.state.aborted()) {
+      /* eslint-disable no-unused-vars */
+      // Omit `createElement`. Otherwise we might skip `renderRouteContext` in `applyMiddleware`.
+      const { createElement, ...prevRenderProps } = this.state.prevRenderProps;
+      /* eslint-enable no-unused-vars */
+      return React.cloneElement(
+        this.props.children,
+        prevRenderProps,
+      );
+    }
+
+    return this.props.children;
   }
 }

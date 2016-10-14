@@ -1,8 +1,9 @@
 import React from 'react';
+import getRoutePath from './util/getRoutePath';
 
 export default class RedialContextContainer extends React.Component {
   static propTypes = {
-    Component: React.PropTypes.func.isRequired,
+    children: React.PropTypes.element.isRequired,
     routerProps: React.PropTypes.object.isRequired,
   };
 
@@ -11,7 +12,7 @@ export default class RedialContextContainer extends React.Component {
   };
 
   render() {
-    const { Component, routerProps, ...props } = this.props;
+    const { routerProps, ...props } = this.props;
     const {
       abortLoading,
       loading,
@@ -19,19 +20,21 @@ export default class RedialContextContainer extends React.Component {
       reloadComponent,
       redialMap,
     } = this.context.redialContext;
-    const redialProps = redialMap.get(Component);
-    const reload = () => reloadComponent(Component);
+    const redialProps = redialMap.get(getRoutePath(routerProps.route, routerProps.routes));
+    const reload = () => reloadComponent(routerProps.route.component);
     const abort = () => abortLoading();
-    return (
-      <Component
-        { ...props }
-        { ...routerProps }
-        { ...redialProps }
-        loading={loading}
-        deferredLoading={deferredLoading}
-        reload={reload}
-        abort={abort}
-      />
+
+    return React.cloneElement(
+      this.props.children,
+      {
+        ...props,
+        ...redialProps,
+        ...routerProps,
+        loading,
+        deferredLoading,
+        reload,
+        abort,
+      }
     );
   }
 }

@@ -1,8 +1,8 @@
-import { RedialContext } from 'react-router-redial';
+import { useRedial } from 'react-router-redial';
 
 import React from 'react';
 import { render } from 'react-dom';
-import { Router, browserHistory } from 'react-router';
+import { Router, browserHistory, applyRouterMiddleware } from 'react-router';
 import { Provider } from 'react-redux';
 
 // Render the app client-side to a given container element:
@@ -17,16 +17,12 @@ export default (container, routes, store) => {
     <Router
       history={browserHistory}
       routes={routes}
-      render={(props) => (
-        <RedialContext
-          { ...props }
-          locals={locals}
-          blocking={['fetch', 'blockingDone']}
-          defer={['defer', 'deferDone']}
-          parallel={false}
-          initialLoading={() => <div>Loading…</div>}
-        />
-      )}
+      render={applyRouterMiddleware(useRedial({
+        locals,
+        blocking: ['fetch', 'blockingDone'],
+        defer: ['defer', 'deferDone'],
+        parallel: false,
+      }))}
     />
   );
 

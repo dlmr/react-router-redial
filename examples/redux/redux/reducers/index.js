@@ -3,7 +3,7 @@ export function githubUsers(state = {}, action) {
     case 'USER_LOADED':
       return {
         ...state,
-        [action.payload.login]: action.payload
+        [action.meta.id]: action.payload,
       };
     default:
       return state;
