@@ -76,17 +76,53 @@ Additionally components will have access to properties that has been set using `
 ## Client API
 The custom redial router middleware `useRedial` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
 ```
-locals                   Extra locals that should be provided to the hooks other than the default ones
-blocking                 Hooks that should be completed before a route transition is completed
-defer                    Hooks that are not needed before making a route transition
-parallel                 If set to true the deferred hooks will run in parallel with the blocking ones
-initialLoading           Component should be shown on initial client load, useful if server rendering is not used
-onStarted(force)         Invoked when a route transition has been detected and when redial hooks will be invoked
-onError(error, type)     Invoked when an error happens, type can be either a "location-change", "aborted" or "other" reason
-onAborted(becauseError)  Invoked if it was prematurely aborted through manual interaction or an error
-onCompleted              Invoked if everything was completed successfully, both blocking and deferred
+locals                     Extra locals that should be provided to the hooks other than the default ones
+blocking                   Hooks that should be completed before a route transition is completed
+defer                      Hooks that are not needed before making a route transition
+parallel                   If set to true the deferred hooks will run in parallel with the blocking ones
+initialLoading             Component should be shown on initial client load, useful if server rendering is not used
+onStarted(force)           Invoked when a route transition has been detected and when redial hooks will be invoked
+onError(error, metaData)   Invoked when an error happens, see below for more info
+onAborted(becauseError)    Invoked if it was prematurely aborted through manual interaction or an error
+onCompleted(type)          Invoked if everything was completed successfully, with type being either "blocking" or "deferred"
 ```
 
+### `onError(error, metaData)`
+__`metaData`__  
+```
+abort()      Function that can be used to abort current loading    
+blocking     If the error originated from a blocking hook or not
+reason       The reason for the error, can be either a "location-change", "aborted" or "other"
+router       React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
+```
+
+#### Example
+We can use `onError` to add handling for errors in our application. The example below shows how we can make the client either reload the page or transition back to the previous page on an error.
+
+```javascript
+const forcePageReloadOnError = true;
+const goBackOnError = false;
+
+// Function that can be used as a setting for useRedial
+function onError(err, { abort, blocking, reason, router }) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(reason, err);
+  }
+
+  // We only what to do this if it was a blocking hook that failed
+  if (blocking) {
+    if (forcePageReloadOnError) {
+      window.location.reload();
+    } else if (goBackOnError) {
+      router.goBack();
+    }
+    // Abort current loading automatically
+    abort();
+  }
+}
+```
+
+### Example
 ```js
 import { useRedial } from 'react-router-redial';
 import { applyRouterMiddleware } from 'react-router';
@@ -95,7 +131,7 @@ import { applyRouterMiddleware } from 'react-router';
   history={ browserHistory }
   routes={ routes }
   render={ applyRouterMiddleware(
-    useRedial({ 
+    useRedial({
         locals,
         blocking: ['fetch'],
         defer: ['defer', 'done'],
@@ -121,6 +157,7 @@ redialMap         This should be used together with RedialContext on the server 
 redialProps       This is for passing the props that has been defined with setProps to the client, expected to be on window.__REDIAL_PROPS__
 ```
 
+### Example
 ```js
 import { triggerHooks } from 'react-router-redial';
 
@@ -176,7 +213,7 @@ export default (container, store) => {
       history={browserHistory}
       routes={routes}
       render={ applyRouterMiddleware(
-        useRedial({ 
+        useRedial({
           locals,
           blocking: ['fetch'],
           defer: ['defer', 'done'],
