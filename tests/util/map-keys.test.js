@@ -1,6 +1,6 @@
 import expect from 'expect';
 
-import createGenerateMapKeyByMatchedRoutes from '../../src/util/map-keys';
+import createGenerateMapKeyByMatchedRoutes from '../../src/util/mapKeys';
 
 describe('mapKeys', () => {
   const routes = [

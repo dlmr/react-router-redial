@@ -1,5 +1,5 @@
-import findRouteByComponent from './find-route-by-component';
-import getRoutePath from './get-route-path';
+import findRouteByComponent from './findRouteByComponent';
+import getRoutePath from './getRoutePath';
 
 export default function createGenerateMapKeyByMatchedRoutes(routes) {
   return (component) => {

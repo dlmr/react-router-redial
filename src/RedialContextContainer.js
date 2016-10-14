@@ -1,5 +1,5 @@
 import React from 'react';
-import getRoutePath from './util/get-route-path';
+import getRoutePath from './util/getRoutePath';
 
 export default class RedialContextContainer extends React.Component {
   static propTypes = {

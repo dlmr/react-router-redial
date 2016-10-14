@@ -4,7 +4,7 @@ import React, { Component, PropTypes } from 'react';
 
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
-import createMapKeys from './util/map-keys';
+import createMapKeys from './util/mapKeys';
 
 function hydrate(renderProps) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {

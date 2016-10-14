@@ -4,7 +4,7 @@ import createMap from './createMap';
 import getRoutesProps from './getRoutesProps';
 import getLocals from './getLocals';
 import getAllComponents from './getAllComponents';
-import createMapKeys from './util/map-keys';
+import createMapKeys from './util/mapKeys';
 
 export default function triggerHooks({
   hooks,

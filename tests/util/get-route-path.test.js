@@ -1,6 +1,6 @@
 import expect from 'expect';
 
-import getRoutePath from '../../src/util/get-route-path';
+import getRoutePath from '../../src/util/getRoutePath';
 
 describe('getRoutePath', () => {
   const routes = [

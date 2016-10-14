@@ -1,6 +1,6 @@
 import expect from 'expect';
 
-import findRouteByComponent from '../../src/util/find-route-by-component';
+import findRouteByComponent from '../../src/util/findRouteByComponent';
 
 describe('findRouteByComponent', () => {
   const component = () => {};
