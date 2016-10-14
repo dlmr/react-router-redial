@@ -22,6 +22,7 @@ server.use(function *() {
   } catch (e) {
     if (e) {
       this.status = 500;
+      console.error(e);
     } else {
       this.status = 404;
     }
