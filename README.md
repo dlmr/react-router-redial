@@ -92,7 +92,7 @@ __`metaData`__
 ```
 abort()      Function that can be used to abort current loading    
 blocking     If the error originated from a blocking hook or not
-reason       The reason for the error, can be either a "location-change", "aborted" or "other"
+reason       The reason for the error, can be either a "location-changed", "aborted" or "other"
 router       React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
 ```
 
@@ -111,9 +111,9 @@ function onError(err, { abort, blocking, reason, router }) {
 
   // We only what to do this if it was a blocking hook that failed
   if (blocking) {
-    if (forcePageReloadOnError) {
+    if (forcePageReloadOnError && reason === 'other') {
       window.location.reload();
-    } else if (goBackOnError) {
+    } else if (goBackOnError && reason !== 'location-changed') {
       router.goBack();
     }
     // Abort current loading automatically
