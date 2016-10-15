@@ -17,6 +17,8 @@ function hydrate(renderProps) {
 }
 
 export default class RedialContext extends Component {
+  static displayName = 'RedialContext';
+
   static propTypes = {
     children: PropTypes.node.isRequired,
 

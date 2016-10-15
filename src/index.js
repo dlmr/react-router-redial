@@ -1,4 +1,4 @@
 export triggerHooks from './triggerHooks';
 export RedialContext from './RedialContext';
-export RedialContextContainer from './RedialContextContainer';
+export RedialContainer from './RedialContainer';
 export useRedial from './useRedial';
