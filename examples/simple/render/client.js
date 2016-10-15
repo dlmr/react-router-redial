@@ -17,11 +17,11 @@ export default (container, routes) => {
 
     // We only what to do this if it was a blocking hook that failed
     if (blocking) {
-      if (forcePageReloadOnError) {
-        window.location.reload();
-      } else if (goBackOnError) {
-        router.goBack();
-      }
+      if (forcePageReloadOnError && reason === 'other') {
+          window.location.reload();
+        } else if (goBackOnError && reason !== 'location-changed') {
+          router.goBack();
+        }
       // Abort current loading automatically
       abort();
     }
