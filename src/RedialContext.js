@@ -171,6 +171,7 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
+      blockingCompleted: false,
       prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
@@ -182,7 +183,12 @@ export default class RedialContext extends Component {
         force,
         bail
       )
-      .then(() => this.props.onCompleted('deferred'))
+      .then(() => {
+        this.props.onCompleted('deferred');
+        if (this.state.blockingCompleted) {
+          this.props.onCompleted('all');
+        }
+      })
       .catch((err) => {
         this.props.onError(err, {
           reason: bail() || 'other',
@@ -214,6 +220,7 @@ export default class RedialContext extends Component {
     // Get deferred data, will not block route transitions
     this.setState({
       deferredLoading: true,
+      deferredCompleted: false,
     });
 
     return triggerHooks({
@@ -228,6 +235,7 @@ export default class RedialContext extends Component {
       this.setState({
         deferredLoading: false,
         redialMap,
+        deferredCompleted: true,
       });
     });
   }
@@ -237,6 +245,7 @@ export default class RedialContext extends Component {
       if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
+          blockingCompleted: true,
           redialMap,
           prevRenderProps: undefined,
           initial: false,
@@ -253,11 +262,16 @@ export default class RedialContext extends Component {
             force,
             bail
           )
-          .then(() => this.props.onCompleted('deferred'))
+          .then(() => {
+            this.props.onCompleted('deferred');
+            this.props.onCompleted('all');
+          })
           .catch((error) => {
             error.deferred = true; // eslint-disable-line
             return Promise.reject(error);
           });
+        } else if (this.state.deferredCompleted) {
+          this.props.onCompleted('all');
         }
       }
 
