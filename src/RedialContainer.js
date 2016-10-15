@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { Component, PropTypes } from 'react';
 import getRoutePath from './util/getRoutePath';
 
-export default class RedialContextContainer extends React.Component {
+export default class RedialContainer extends Component {
+  static displayName = 'RedialContainer';
+
   static propTypes = {
-    children: React.PropTypes.element.isRequired,
-    routerProps: React.PropTypes.object.isRequired,
+    children: PropTypes.element.isRequired,
+    routerProps: PropTypes.object.isRequired,
   };
 
   static contextTypes = {
-    redialContext: React.PropTypes.object.isRequired,
+    redialContext: PropTypes.object.isRequired,
   };
 
   render() {

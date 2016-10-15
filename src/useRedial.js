@@ -1,7 +1,7 @@
 import React from 'react';
 
 import RedialContext from './RedialContext';
-import RedialContextContainer from './RedialContextContainer';
+import RedialContainer from './RedialContainer';
 
 export default function useRedial(options) {
   return {
@@ -12,9 +12,9 @@ export default function useRedial(options) {
     ),
     /* eslint-disable react/prop-types */
     renderRouteComponent: (child, props) => (
-      <RedialContextContainer routerProps={props}>
+      <RedialContainer routerProps={props}>
         {child}
-      </RedialContextContainer>
+      </RedialContainer>
     ),
     /* eslint-enable react/prop-types */
   };
