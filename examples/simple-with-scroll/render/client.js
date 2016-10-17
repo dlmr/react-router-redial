@@ -12,10 +12,10 @@ export default (container, routes) => {
       history={browserHistory}
       routes={routes}
       render={applyRouterMiddleware(
-        useScroll(), 
+        useScroll(),
         useRedial({
-          blocking: ['fetch'],
-          defer: ['defer', 'done'],
+          beforeTransition: ['fetch'],
+          afterTransition: ['defer', 'done'],
           parallel: false,
           initialLoading: () => <div>Loading…</div>,
         })

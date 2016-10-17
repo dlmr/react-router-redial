@@ -27,8 +27,8 @@ export default class RedialContext extends Component {
 
     // Custom
     locals: PropTypes.object,
-    blocking: PropTypes.array,
-    defer: PropTypes.array,
+    beforeTransition: PropTypes.array,
+    afterTransition: PropTypes.array,
     parallel: PropTypes.bool,
     initialLoading: PropTypes.func,
     onError: PropTypes.func,
@@ -41,8 +41,8 @@ export default class RedialContext extends Component {
   };
 
   static defaultProps = {
-    blocking: [],
-    defer: [],
+    beforeTransition: [],
+    afterTransition: [],
     parallel: false,
 
     onError(err, { type }) {
@@ -82,21 +82,21 @@ export default class RedialContext extends Component {
     super(props, context);
     this.state = {
       loading: false,
-      deferredLoading: false,
+      afterTransitionLoading: false,
       aborted: () => false,
       abort: () => {},
       prevRenderProps: undefined,
       redialMap: props.redialMap || hydrate(props.renderProps),
-      initial: props.blocking.length > 0,
+      initial: props.beforeTransition.length > 0,
     };
   }
 
   getChildContext() {
-    const { loading, deferredLoading, redialMap } = this.state;
+    const { loading, afterTransitionLoading, redialMap } = this.state;
     return {
       redialContext: {
         loading,
-        deferredLoading,
+        afterTransitionLoading,
         redialMap,
         reloadComponent: (component) => {
           this.reloadComponent(component);
@@ -133,12 +133,12 @@ export default class RedialContext extends Component {
     if (!abort || this.state.abort === abort) {
       // We need to be in a loading state for it to make sense
       // to abort something
-      if (this.state.loading || this.state.deferredLoading) {
+      if (this.state.loading || this.state.afterTransitionLoading) {
         this.state.abort();
 
         this.setState({
           loading: false,
-          deferredLoading: false,
+          afterTransitionLoading: false,
         });
 
         if (this.props.onAborted) {
@@ -174,30 +174,30 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
-      blockingCompleted: false,
+      beforeTransitionCompleted: false,
       prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
     if (this.props.parallel) {
-      this.runDeferred(
-        this.props.defer,
+      this.runAfterTransition(
+        this.props.afterTransition,
         components,
         renderProps,
         force,
         bail
       )
       .then(() => {
-        if (this.state.blockingCompleted) {
-          this.props.onCompleted('deferred');
+        if (this.state.beforeTransitionCompleted) {
+          this.props.onCompleted('afterTransition');
         }
       })
       .catch((err) => {
-        // We will only propagate this error if blocking have been completed
-        // This because the blocking error is more critical
-        if (this.state.blockingCompleted) {
+        // We will only propagate this error if beforeTransition have been completed
+        // This because the beforeTransition error is more critical
+        if (this.state.beforeTransitionCompleted) {
           this.props.onError(err, {
             reason: bail() || 'other',
-            blocking: false,
+            beforeTransition: false,
             router: this.props.renderProps.router,
             abort: () => this.abort(true, abort),
           });
@@ -205,8 +205,8 @@ export default class RedialContext extends Component {
       });
     }
 
-    this.runBlocking(
-      this.props.blocking,
+    this.runBeforeTransition(
+      this.props.beforeTransition,
       components,
       renderProps,
       force,
@@ -215,18 +215,19 @@ export default class RedialContext extends Component {
     .catch((error) => {
       this.props.onError(error, {
         reason: bail() || 'other',
-        blocking: error.deferred === undefined, // If not defined before it's a blocking error
+        // If not defined before it's a beforeTransition error
+        beforeTransition: error.afterTransition === undefined,
         router: this.props.renderProps.router,
         abort: () => this.abort(true, abort),
       });
     });
   }
 
-  runDeferred(hooks, components, renderProps, force = false, bail) {
-    // Get deferred data, will not block route transitions
+  runAfterTransition(hooks, components, renderProps, force = false, bail) {
+    // Get afterTransition data, will not block route transitions
     this.setState({
-      deferredLoading: true,
-      deferredCompleted: false,
+      afterTransitionLoading: true,
+      afterTransitionCompleted: false,
     });
 
     return triggerHooks({
@@ -239,44 +240,44 @@ export default class RedialContext extends Component {
       bail,
     }).then(({ redialMap }) => {
       this.setState({
-        deferredLoading: false,
+        afterTransitionLoading: false,
         redialMap,
-        deferredCompleted: true,
+        afterTransitionCompleted: true,
       });
     });
   }
 
-  runBlocking(hooks, components, renderProps, force = false, bail) {
+  runBeforeTransition(hooks, components, renderProps, force = false, bail) {
     const completeRouteTransition = (redialMap) => {
       if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
-          blockingCompleted: true,
+          beforeTransitionCompleted: true,
           redialMap,
           prevRenderProps: undefined,
           initial: false,
         });
 
-        this.props.onCompleted('blocking');
+        this.props.onCompleted('beforeTransition');
 
-        // Start deferred if we are not in parallel
+        // Start afterTransition if we are not in parallel
         if (!this.props.parallel) {
-          return this.runDeferred(
-            this.props.defer,
+          return this.runAfterTransition(
+            this.props.afterTransition,
             components,
             renderProps,
             force,
             bail
           )
           .then(() => {
-            this.props.onCompleted('deferred');
+            this.props.onCompleted('afterTransition');
           })
           .catch((error) => {
-            error.deferred = true; // eslint-disable-line
+            error.afterTransition = true; // eslint-disable-line
             return Promise.reject(error);
           });
-        } else if (this.state.deferredCompleted) {
-          this.props.onCompleted('deferred');
+        } else if (this.state.afterTransitionCompleted) {
+          this.props.onCompleted('afterTransition');
         }
       }
 

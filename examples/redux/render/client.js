@@ -19,8 +19,8 @@ export default (container, routes, store) => {
       routes={routes}
       render={applyRouterMiddleware(useRedial({
         locals,
-        blocking: ['fetch', 'blockingDone'],
-        defer: ['defer', 'deferDone'],
+        beforeTransition: ['fetch', 'blockingDone'],
+        afterTransition: ['defer', 'deferDone'],
         parallel: false,
       }))}
     />

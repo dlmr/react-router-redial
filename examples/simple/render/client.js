@@ -10,13 +10,13 @@ export default (container, routes) => {
   const goBackOnError = false;
 
   // Function that can be used as a setting for useRedial
-  function onError(err, { abort, blocking, reason, router }) {
+  function onError(err, { abort, beforeTransition, reason, router }) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(reason, err);
     }
 
     // We only what to do this if it was a blocking hook that failed
-    if (blocking) {
+    if (beforeTransition) {
       if (forcePageReloadOnError && reason === 'other') {
           window.location.reload();
         } else if (goBackOnError && reason !== 'location-changed') {
@@ -32,9 +32,9 @@ export default (container, routes) => {
       history={browserHistory}
       routes={routes}
       render={applyRouterMiddleware(useRedial({
-        blocking: ['fetch'],
-        defer: ['defer', 'done'],
-        parallel: false,
+        beforeTransition: ['fetch'],
+        afterTransition: ['defer', 'done'],
+        parallel: true,
         initialLoading: () => <div>Loading…</div>,
         onError,
       }))}
