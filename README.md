@@ -84,7 +84,7 @@ initialLoading             Component should be shown on initial client load, use
 onStarted(force)           Invoked when a route transition has been detected and when redial hooks will be invoked
 onError(error, metaData)   Invoked when an error happens, see below for more info
 onAborted(becauseError)    Invoked if it was prematurely aborted through manual interaction or an error
-onCompleted(type)          Invoked if everything was completed successfully, with type being either "blocking", "deferred" or "all"
+onCompleted(type)          Invoked if everything was completed successfully, with type being either "blocking" or "deferred"
 ```
 
 ### `onError(error, metaData)`

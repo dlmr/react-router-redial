@@ -184,9 +184,8 @@ export default class RedialContext extends Component {
         bail
       )
       .then(() => {
-        this.props.onCompleted('deferred');
         if (this.state.blockingCompleted) {
-          this.props.onCompleted('all');
+          this.props.onCompleted('deferred');
         }
       })
       .catch((err) => {
@@ -264,14 +263,13 @@ export default class RedialContext extends Component {
           )
           .then(() => {
             this.props.onCompleted('deferred');
-            this.props.onCompleted('all');
           })
           .catch((error) => {
             error.deferred = true; // eslint-disable-line
             return Promise.reject(error);
           });
         } else if (this.state.deferredCompleted) {
-          this.props.onCompleted('all');
+          this.props.onCompleted('deferred');
         }
       }
 
