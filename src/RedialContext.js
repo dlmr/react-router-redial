@@ -189,12 +189,16 @@ export default class RedialContext extends Component {
         }
       })
       .catch((err) => {
-        this.props.onError(err, {
-          reason: bail() || 'other',
-          blocking: false,
-          router: this.props.renderProps.router,
-          abort: () => this.abort(true),
-        });
+        // We will only propagate this error if blocking have been completed
+        // This because the blocking error is more critical
+        if (this.state.blockingCompleted) {
+          this.props.onError(err, {
+            reason: bail() || 'other',
+            blocking: false,
+            router: this.props.renderProps.router,
+            abort: () => this.abort(true),
+          });
+        }
       });
     }
 
