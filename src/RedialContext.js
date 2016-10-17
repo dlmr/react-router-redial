@@ -128,19 +128,22 @@ export default class RedialContext extends Component {
     this.load(component, this.props.renderProps, true);
   }
 
-  abort(becauseError) {
-    // We need to be in a loading state for it to make sense
-    // to abort something
-    if (this.state.loading || this.state.deferredLoading) {
-      this.state.abort();
+  abort(becauseError, abort) {
+    // Make sure we only cancel if it is the correct ongoing request
+    if (!abort || this.state.abort === abort) {
+      // We need to be in a loading state for it to make sense
+      // to abort something
+      if (this.state.loading || this.state.deferredLoading) {
+        this.state.abort();
 
-      this.setState({
-        loading: false,
-        deferredLoading: false,
-      });
+        this.setState({
+          loading: false,
+          deferredLoading: false,
+        });
 
-      if (this.props.onAborted) {
-        this.props.onAborted(becauseError);
+        if (this.props.onAborted) {
+          this.props.onAborted(becauseError);
+        }
       }
     }
   }
@@ -196,7 +199,7 @@ export default class RedialContext extends Component {
             reason: bail() || 'other',
             blocking: false,
             router: this.props.renderProps.router,
-            abort: () => this.abort(true),
+            abort: () => this.abort(true, abort),
           });
         }
       });
@@ -214,7 +217,7 @@ export default class RedialContext extends Component {
         reason: bail() || 'other',
         blocking: error.deferred === undefined, // If not defined before it's a blocking error
         router: this.props.renderProps.router,
-        abort: () => this.abort(true),
+        abort: () => this.abort(true, abort),
       });
     });
   }
