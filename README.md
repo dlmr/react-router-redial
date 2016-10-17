@@ -66,10 +66,10 @@ isAborted         Function that returns if the hooks has been aborted, can be us
 
 ### Default props available to decorated components
 ```
-loading           Will be true when blocking hooks are not yet completed
-deferredLoading   Will be true when deferred hooks are not yet completed
-reload            Function that can be invoked to re-trigger the hooks for the current component
-abort             Function that can be invoked to abort current running hooks
+loading                 Will be true when beforeTransition hooks are not yet completed
+afterTransitionLoading  Will be true when afterTransition hooks are not yet completed
+reload                  Function that can be invoked to re-trigger the hooks for the current component
+abort                   Function that can be invoked to abort current running hooks
 ```
 Additionally components will have access to properties that has been set using `setProps`.
 
@@ -77,21 +77,21 @@ Additionally components will have access to properties that has been set using `
 The custom redial router middleware `useRedial` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
 ```
 locals                     Extra locals that should be provided to the hooks other than the default ones
-blocking                   Hooks that should be completed before a route transition is completed
-defer                      Hooks that are not needed before making a route transition
-parallel                   If set to true the deferred hooks will run in parallel with the blocking ones
+beforeTransition           Hooks that should be completed before a route transition is completed
+afterTransition            Hooks that are not needed before making a route transition
+parallel                   If set to true the afterTransition hooks will run in parallel with the beforeTransition ones
 initialLoading             Component should be shown on initial client load, useful if server rendering is not used
 onStarted(force)           Invoked when a route transition has been detected and when redial hooks will be invoked
 onError(error, metaData)   Invoked when an error happens, see below for more info
 onAborted(becauseError)    Invoked if it was prematurely aborted through manual interaction or an error
-onCompleted(type)          Invoked if everything was completed successfully, with type being either "blocking" or "deferred"
+onCompleted(type)          Invoked if everything was completed successfully, with type being either "beforeTransition" or "afterTransition"
 ```
 
 ### `onError(error, metaData)`
 __`metaData`__  
 ```
 abort()      Function that can be used to abort current loading    
-blocking     If the error originated from a blocking hook or not
+beforeTransition     If the error originated from a beforeTransition hook or not
 reason       The reason for the error, can be either a "location-changed", "aborted" or "other"
 router       React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
 ```
@@ -104,13 +104,13 @@ const forcePageReloadOnError = true;
 const goBackOnError = false;
 
 // Function that can be used as a setting for useRedial
-function onError(err, { abort, blocking, reason, router }) {
+function onError(err, { abort, beforeTransition, reason, router }) {
   if (process.env.NODE_ENV !== 'production') {
     console.error(reason, err);
   }
 
-  // We only what to do this if it was a blocking hook that failed
-  if (blocking) {
+  // We only what to do this if it was a beforeTransition hook that failed
+  if (beforeTransition) {
     if (forcePageReloadOnError && reason === 'other') {
       window.location.reload();
     } else if (goBackOnError && reason !== 'location-changed') {
@@ -133,8 +133,8 @@ import { applyRouterMiddleware } from 'react-router';
   render={ applyRouterMiddleware(
     useRedial({
         locals,
-        blocking: ['fetch'],
-        defer: ['defer', 'done'],
+        beforeTransition: ['fetch'],
+        afterTransition: ['defer', 'done'],
         parallel: true,
         initialLoading: () => <div>Loading…</div>,
     })
@@ -175,7 +175,7 @@ triggerHooks({
 ```
 
 ## Hooks
-react-router-redial provides a simple way to define in what order certain hooks should run and if they can run in parallel. The same syntax is used for both `hooks` when used on the server with `triggerHooks` and `blocking` + `defer` on the client with `RedialContext`. The hooks are expected to be an array the can contain either single hooks or arrays of hooks. Each individual element in the array will run in parallel and after it has been completed the next element will be managed. This means that you can run some hooks together and others after they have been completed. This is useful if you for instance want to run some hook that should have access to some data that other hooks before it should have defined.
+react-router-redial provides a simple way to define in what order certain hooks should run and if they can run in parallel. The same syntax is used for both `hooks` when used on the server with `triggerHooks` and `beforeTransition` + `afterTransition` on the client with `RedialContext`. The hooks are expected to be an array the can contain either single hooks or arrays of hooks. Each individual element in the array will run in parallel and after it has been completed the next element will be managed. This means that you can run some hooks together and others after they have been completed. This is useful if you for instance want to run some hook that should have access to some data that other hooks before it should have defined.
 
 ### Example
 Let's look at an example to understand this a bit better. Say that we have the following hooks defined on the server:
@@ -215,8 +215,8 @@ export default (container, store) => {
       render={ applyRouterMiddleware(
         useRedial({
           locals,
-          blocking: ['fetch'],
-          defer: ['defer', 'done'],
+          beforeTransition: ['fetch'],
+          afterTransition: ['defer', 'done'],
           parallel: true,
           initialLoading: () => <div>Loading…</div>,
         })
