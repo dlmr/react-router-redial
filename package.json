@@ -1,6 +1,6 @@
 {
   "name": "react-router-redial",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Easy integration of redial for React Router",
   "main": "lib/index.js",
   "files": [
@@ -26,7 +26,9 @@
     "data fetching"
   ],
   "author": "Gustaf Dalemar",
-  "contributors": ["Patrik Åkerstrand <patrik.akerstrand@schibsted.se>"],
+  "contributors": [
+    "Patrik Åkerstrand <patrik.akerstrand@schibsted.se>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/dlmr/react-router-redial/issues"
