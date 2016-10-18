@@ -89,6 +89,11 @@ export default class RedialContext extends Component {
       redialMap: props.redialMap || hydrate(props.renderProps),
       initial: props.beforeTransition.length > 0,
     };
+    this.completed = {
+      beforeTransition: false,
+      afterTransition: false,
+      error: null,
+    };
   }
 
   getChildContext() {
@@ -170,11 +175,12 @@ export default class RedialContext extends Component {
       this.props.onStarted(force);
     }
 
+    this.completed.beforeTransition = false;
+
     this.setState({
       aborted,
       abort,
       loading: true,
-      beforeTransitionCompleted: false,
       prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
     });
 
@@ -187,20 +193,24 @@ export default class RedialContext extends Component {
         bail
       )
       .then(() => {
-        if (this.state.beforeTransitionCompleted) {
+        if (this.completed.afterTransition) {
           this.props.onCompleted('afterTransition');
         }
       })
       .catch((err) => {
         // We will only propagate this error if beforeTransition have been completed
         // This because the beforeTransition error is more critical
-        if (this.state.beforeTransitionCompleted) {
-          this.props.onError(err, {
-            reason: bail() || 'other',
-            beforeTransition: false,
-            router: this.props.renderProps.router,
-            abort: () => this.abort(true, abort),
-          });
+        const error = () => this.props.onError(err, {
+          reason: bail() || 'other',
+          beforeTransition: false,
+          router: this.props.renderProps.router,
+          abort: () => this.abort(true, abort),
+        });
+
+        if (this.completed.beforeTransition) {
+          error();
+        } else {
+          this.completed.error = error;
         }
       });
     }
@@ -225,9 +235,11 @@ export default class RedialContext extends Component {
 
   runAfterTransition(hooks, components, renderProps, force = false, bail) {
     // Get afterTransition data, will not block route transitions
+    this.completed.afterTransition = false;
+    this.completed.error = null;
+
     this.setState({
       afterTransitionLoading: true,
-      afterTransitionCompleted: false,
     });
 
     return triggerHooks({
@@ -239,10 +251,10 @@ export default class RedialContext extends Component {
       force,
       bail,
     }).then(({ redialMap }) => {
+      this.completed.afterTransition = true;
       this.setState({
         afterTransitionLoading: false,
         redialMap,
-        afterTransitionCompleted: true,
       });
     });
   }
@@ -252,13 +264,14 @@ export default class RedialContext extends Component {
       if (!bail() && !this.unmounted) {
         this.setState({
           loading: false,
-          beforeTransitionCompleted: true,
           redialMap,
           prevRenderProps: undefined,
           initial: false,
         });
 
         this.props.onCompleted('beforeTransition');
+
+        this.completed.beforeTransition = true;
 
         // Start afterTransition if we are not in parallel
         if (!this.props.parallel) {
@@ -276,8 +289,11 @@ export default class RedialContext extends Component {
             error.afterTransition = true; // eslint-disable-line
             return Promise.reject(error);
           });
-        } else if (this.state.afterTransitionCompleted) {
+        } else if (this.completed.afterTransition) {
+          this.completed.afterTransition = false;
           this.props.onCompleted('afterTransition');
+        } else if (this.completed.error) {
+          this.completed.error();
         }
       }
 
