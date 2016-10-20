@@ -90,10 +90,10 @@ onCompleted(type)          Invoked if everything was completed successfully, wit
 ### `onError(error, metaData)`
 __`metaData`__  
 ```
-abort()      Function that can be used to abort current loading    
-beforeTransition     If the error originated from a beforeTransition hook or not
-reason       The reason for the error, can be either a "location-changed", "aborted" or "other"
-router       React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
+abort()            Function that can be used to abort current loading    
+beforeTransition   If the error originated from a beforeTransition hook or not
+reason             The reason for the error, can be either a "location-changed", "aborted" or "other"
+router             React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
 ```
 
 #### Example
