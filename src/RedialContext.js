@@ -5,11 +5,13 @@ import React, { Component, PropTypes } from 'react';
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
 import createMapKeys from './util/mapKeys';
+import getAllComponents from './getAllComponents';
 
 function hydrate(renderProps) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
     const getMapKeyForComponent = createMapKeys(renderProps.routes);
-    const componentKeys = renderProps.components.map(getMapKeyForComponent);
+    const components = getAllComponents(renderProps.components);
+    const componentKeys = components.map(getMapKeyForComponent);
     return createMap(componentKeys, __REDIAL_PROPS__);
   }
 
