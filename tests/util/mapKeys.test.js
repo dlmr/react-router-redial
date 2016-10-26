@@ -47,7 +47,7 @@ describe('mapKeys', () => {
       );
     });
 
-    it('Gives gives the path up to the matched route', () => {
+    it('Gives the path up to the matched route', () => {
       expect(mapKeyByComponent(routes[0].component, routes)).toBe('/');
       expect(mapKeyByComponent(routes[1].component, routes)).toBe('//dashboard');
       expect(mapKeyByComponent(routes[2].component, routes)).toBe('//dashboard/widget/:widgetName');
@@ -56,7 +56,7 @@ describe('mapKeys', () => {
 
   describe('named routes', () => {
     const mapKeyByComponent = createGenerateMapKeyByMatchedRoutes(namedRoutes);
-    it('Gives gives the path up to the matched route', () => {
+    it('Gives the path up to the matched route', () => {
       expect(mapKeyByComponent(namedRoutes[0].component, namedRoutes)).toBe('/');
       expect(mapKeyByComponent(namedRoutes[1].component, namedRoutes)).toBe('//');
       expect(
