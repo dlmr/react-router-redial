@@ -32,6 +32,10 @@ describe('mapKeys', () => {
         main: function Main() {},
       },
     },
+    {
+      path: 'child',
+      component: function Child() {},
+    },
   ];
 
   describe('regular routes', () => {
@@ -57,7 +61,8 @@ describe('mapKeys', () => {
       expect(mapKeyByComponent(namedRoutes[1].component, namedRoutes)).toBe('//');
       expect(
         mapKeyByComponent(namedRoutes[2].components.header, namedRoutes)
-      ).toBe('///named@header');
+      ).toBe('///named>header');
+      expect(mapKeyByComponent(namedRoutes[3].component, namedRoutes)).toBe('///named/child');
     });
   });
 });

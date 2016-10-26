@@ -8,7 +8,7 @@ export default function getRoutePath(route, routes, name) {
     .reduce((acc, { path }) => acc.concat(path), [])
     .join('/');
   if (name) {
-    routePath = `${routePath}@${name}`;
+    routePath = `${routePath}>${name}`;
   }
   return routePath;
 }
