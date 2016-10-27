@@ -22,7 +22,8 @@ export default class RedialContainer extends Component {
       reloadComponent,
       redialMap,
     } = this.context.redialContext;
-    const redialProps = redialMap.get(getRoutePath(routerProps.route, routerProps.routes));
+    const mapKey = getRoutePath(routerProps.route, routerProps.routes, routerProps.key);
+    const redialProps = redialMap.get(mapKey);
     const reload = () => reloadComponent(routerProps.route.component);
     const abort = () => abortLoading();
 

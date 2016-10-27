@@ -27,4 +27,9 @@ describe('getRoutePath', () => {
     expect(getRoutePath(routes[1], routes)).toBe('//dashboard');
     expect(getRoutePath(routes[2], routes)).toBe('//dashboard/widget/:widgetName');
   });
+
+  it('appends the provided `name` to the path', () => {
+    const name = 'testing';
+    expect(getRoutePath(routes[1], routes, name)).toBe(`//dashboard>${name}`);
+  });
 });
