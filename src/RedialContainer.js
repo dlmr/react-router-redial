@@ -18,7 +18,7 @@ export default class RedialContainer extends Component {
     const {
       abortLoading,
       loading,
-      deferredLoading,
+      afterTransitionLoading,
       reloadComponent,
       redialMap,
     } = this.context.redialContext;
@@ -34,7 +34,7 @@ export default class RedialContainer extends Component {
         ...redialProps,
         ...routerProps,
         loading,
-        deferredLoading,
+        afterTransitionLoading,
         reload,
         abort,
       }
