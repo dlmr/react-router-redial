@@ -1,24 +1,23 @@
-export default function findRouteByComponent(component, routes) {
+export default function findRouteByComponent(component, routes, components) {
   const result = {};
-  for (const route of routes) {
-    if (route.component === component) {
-      result.route = route;
-      return result;
-    }
-    if (route.components) {
-      const foundNamedComponent = Object.keys(route.components)
+  components.some((matchedComponent, i) => {
+    if (typeof matchedComponent === 'object') {
+      Object.keys(matchedComponent)
         .some(key => {
-          const found = route.components[key] === component;
-          if (found) {
+          if (matchedComponent[key] === component) {
             result.name = key;
+            matchedComponent = matchedComponent[key]; // eslint-disable-line no-param-reassign
+            return true;
           }
-          return found;
+          return false;
         });
-      if (foundNamedComponent) {
-        result.route = route;
-        return result;
-      }
     }
-  }
+    if (component === matchedComponent) {
+      result.route = routes[i];
+      return true;
+    }
+    return false;
+  });
+
   return result;
 }

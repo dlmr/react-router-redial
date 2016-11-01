@@ -2,10 +2,14 @@ import expect from 'expect';
 
 import findRouteByComponent from '../../src/util/findRouteByComponent';
 
+function toMatchedComponents(routes) {
+  return routes.map(route => route.component || route.components);
+}
+
 describe('findRouteByComponent', () => {
   const component = () => {};
   it('Returns an empty object for empty routes', () => {
-    expect(findRouteByComponent(component, [])).toEqual({});
+    expect(findRouteByComponent(component, [], [])).toEqual({});
   });
   it('Returns an empty object when the component cannot be found among the routes', () => {
     const routes = [
@@ -16,7 +20,7 @@ describe('findRouteByComponent', () => {
         component: function andNotThisOnceEither() {},
       },
     ];
-    expect(findRouteByComponent(component, routes)).toEqual({});
+    expect(findRouteByComponent(component, routes, toMatchedComponents(routes))).toEqual({});
   });
   it('Returns the first matched route', () => {
     const routes = [
@@ -27,7 +31,9 @@ describe('findRouteByComponent', () => {
         component,
       },
     ];
-    expect(findRouteByComponent(component, routes)).toEqual({ route: routes[1] });
+    expect(findRouteByComponent(component, routes, toMatchedComponents(routes))).toEqual({
+      route: routes[1],
+    });
   });
   it('Handles `components` for named routes', () => {
     const routes = [
@@ -43,6 +49,9 @@ describe('findRouteByComponent', () => {
         },
       },
     ];
-    expect(findRouteByComponent(component, routes)).toEqual({ route: routes[1], name: 'c' });
+    expect(findRouteByComponent(component, routes, toMatchedComponents(routes))).toEqual({
+      route: routes[1],
+      name: 'c',
+    });
   });
 });

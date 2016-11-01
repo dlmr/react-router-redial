@@ -9,7 +9,7 @@ import getAllComponents from './getAllComponents';
 
 function hydrate(renderProps) {
   if (typeof __REDIAL_PROPS__ !== 'undefined' && Array.isArray(__REDIAL_PROPS__)) {
-    const getMapKeyForComponent = createMapKeys(renderProps.routes);
+    const getMapKeyForComponent = createMapKeys(renderProps.routes, renderProps.components);
     const components = getAllComponents(renderProps.components);
     const componentKeys = components.map(getMapKeyForComponent);
     return createMap(componentKeys, __REDIAL_PROPS__);
