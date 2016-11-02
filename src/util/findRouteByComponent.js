@@ -1,22 +1,34 @@
-export default function findRouteByComponent(component, routes, components) {
+import isPlainObject from 'lodash.isplainobject';
+
+const isNamedComponents = isPlainObject;
+
+function searchNamedComponents(component, namedComponents, correspondingRoute, result) {
+  return Object.keys(namedComponents)
+    .some(name => {
+      const isMatch = namedComponents[name] === component;
+      if (isMatch) {
+        /* eslint-disable no-param-reassign */
+        result.name = name;
+        result.route = correspondingRoute;
+        /* eslint-enable no-param-reassign */
+      }
+      return isMatch;
+    });
+}
+
+export default function findRouteByComponent(component, matchedRoutes, matchedComponents) {
   const result = {};
-  components.some((matchedComponent, i) => {
-    if (typeof matchedComponent === 'object') {
-      Object.keys(matchedComponent)
-        .some(key => {
-          if (matchedComponent[key] === component) {
-            result.name = key;
-            matchedComponent = matchedComponent[key]; // eslint-disable-line no-param-reassign
-            return true;
-          }
-          return false;
-        });
+
+  matchedComponents.some((matchedComponent, i) => {
+    if (isNamedComponents(matchedComponent)) {
+      return searchNamedComponents(component, matchedComponent, matchedRoutes[i], result);
     }
-    if (component === matchedComponent) {
-      result.route = routes[i];
-      return true;
+
+    const isMatch = component === matchedComponent;
+    if (isMatch) {
+      result.route = matchedRoutes[i];
     }
-    return false;
+    return isMatch;
   });
 
   return result;
