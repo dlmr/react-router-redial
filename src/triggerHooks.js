@@ -31,7 +31,7 @@ export default function triggerHooks({
   const getProps = (key) =>
     () => redialMap.get(key) || {};
 
-  const getMapKeyForComponent = createMapKeys(renderProps.routes);
+  const getMapKeyForComponent = createMapKeys(renderProps.routes, renderProps.components);
 
   const completeLocals = (component) => {
     const key = getMapKeyForComponent(component);

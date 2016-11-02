@@ -39,7 +39,7 @@ describe('mapKeys', () => {
   ];
 
   describe('regular routes', () => {
-    const mapKeyByComponent = createGenerateMapKeyByMatchedRoutes(routes);
+    const mapKeyByComponent = createGenerateMapKeyByMatchedRoutes(routes, routes.map(route => route.component || route.components));
 
     it('Throws an Error when the component cannot be found among the matched routes', () => {
       expect(() => mapKeyByComponent(() => {}, routes)).toThrow(
@@ -55,7 +55,7 @@ describe('mapKeys', () => {
   });
 
   describe('named routes', () => {
-    const mapKeyByComponent = createGenerateMapKeyByMatchedRoutes(namedRoutes);
+    const mapKeyByComponent = createGenerateMapKeyByMatchedRoutes(namedRoutes, namedRoutes.map(route => route.component || route.components));
     it('Gives the path up to the matched route', () => {
       expect(mapKeyByComponent(namedRoutes[0].component, namedRoutes)).toBe('/');
       expect(mapKeyByComponent(namedRoutes[1].component, namedRoutes)).toBe('//');
