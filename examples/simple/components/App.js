@@ -33,6 +33,9 @@ export default class App extends Component {
           <li>
             <Link to="/defer">Defer, with client error</Link>
           </li>
+          <li>
+            <Link to="/async">Async Route</Link>
+          </li>
         </ul>
         {this.props.children}
       </div>

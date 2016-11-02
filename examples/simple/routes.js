@@ -16,5 +16,20 @@ export default (
     </Route>
     <Route path="fetch" component={Fetch} />
     <Route path="defer" component={Defer} />
+    {/*
+        This route will not work on the server since we are not building
+        the server with Webpack
+    */}
+    <Route
+        path="async"
+        getComponent={ (nextState, callback) => {
+            require.ensure([], (require) => {
+                callback(
+                    null,
+                    require('./components/Async').default
+                );
+            });
+        }}
+    />
   </Route>
 )
