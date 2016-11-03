@@ -3,7 +3,7 @@
 Simple integration of [redial](https://github.com/markdalgleish/redial) for [React Router](https://github.com/reactjs/react-router)
 
 ```bash
-$ npm install --save react-router-redial
+$ npm install --save react-router-redial redial
 ```
 
 ## Why?
