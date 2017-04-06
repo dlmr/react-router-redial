@@ -47,8 +47,9 @@ export default class RedialContext extends Component {
     afterTransition: [],
     parallel: false,
 
-    onError(err, { type }) {
+    onError(err, { beforeTransition }) {
       if (process.env.NODE_ENV !== 'production') {
+        const type = beforeTransition ? 'beforeTransition' : 'afterTransition';
         console.error(type, err);
       }
     },
