@@ -226,10 +226,16 @@ export default class RedialContext extends Component {
       bail
     )
     .catch((error) => {
+      let afterTransition = false;
+      if (error && error.afterTransition !== undefined) {
+        afterTransition = error.afterTransition;
+        error = error.error; // eslint-disable-line
+      }
+
       this.props.onError(error, {
         reason: bail() || 'other',
         // If not defined before it's a beforeTransition error
-        beforeTransition: error.afterTransition === undefined,
+        beforeTransition: !afterTransition,
         router: this.props.renderProps.router,
         abort: () => this.abort(true, abort),
       });
@@ -288,10 +294,7 @@ export default class RedialContext extends Component {
           .then(() => {
             this.props.onCompleted('afterTransition');
           })
-          .catch((error) => {
-            error.afterTransition = true; // eslint-disable-line
-            return Promise.reject(error);
-          });
+          .catch((error) => Promise.reject({ error, afterTransition: true }));
         } else if (this.completed.afterTransition) {
           this.completed.afterTransition = false;
           this.props.onCompleted('afterTransition');
