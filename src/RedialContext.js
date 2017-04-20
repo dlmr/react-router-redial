@@ -1,6 +1,7 @@
 /* global __REDIAL_PROPS__ */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 import triggerHooks from './triggerHooks';
 import createMap from './createMap';
