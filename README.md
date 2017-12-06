@@ -94,6 +94,7 @@ abort()            Function that can be used to abort current loading
 beforeTransition   If the error originated from a beforeTransition hook or not
 reason             The reason for the error, can be either a "location-changed", "aborted" or "other"
 router             React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
+location           The location that the error occurred for
 ```
 
 #### Example

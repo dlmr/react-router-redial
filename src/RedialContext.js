@@ -48,10 +48,10 @@ export default class RedialContext extends Component {
     afterTransition: [],
     parallel: false,
 
-    onError(err, { beforeTransition }) {
+    onError(err, { beforeTransition, location }) {
       if (process.env.NODE_ENV !== 'production') {
         const type = beforeTransition ? 'beforeTransition' : 'afterTransition';
-        console.error(type, err);
+        console.error(type, err, location);
       }
     },
 
@@ -158,6 +158,7 @@ export default class RedialContext extends Component {
   }
 
   load(components, renderProps, force = false) {
+    const location = renderProps.location;
     let isAborted = false;
     const abort = () => {
       isAborted = true;
@@ -205,6 +206,7 @@ export default class RedialContext extends Component {
       }
 
       this.props.onError(error, {
+        location,
         reason: bail() || 'other',
         // If not defined before it's a beforeTransition error
         beforeTransition: !afterTransition,
@@ -231,6 +233,7 @@ export default class RedialContext extends Component {
         // We will only propagate this error if beforeTransition have been completed
         // This because the beforeTransition error is more critical
         const error = () => this.props.onError(err, {
+          location,
           reason: bail() || 'other',
           beforeTransition: false,
           router: this.props.renderProps.router,
