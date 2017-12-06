@@ -223,6 +223,7 @@ export default class RedialContext extends Component {
       )
       .then(() => {
         if (this.completed.afterTransition) {
+          this.completed.afterTransition = false;
           this.props.onCompleted('afterTransition');
         }
       })
