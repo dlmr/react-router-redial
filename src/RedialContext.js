@@ -185,7 +185,9 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
-      prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
+      prevRenderProps: this.state.loading || this.state.aborted()
+        ? this.state.prevRenderProps
+        : this.props.renderProps,
     });
 
     if (this.props.parallel) {
