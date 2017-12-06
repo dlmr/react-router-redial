@@ -190,6 +190,29 @@ export default class RedialContext extends Component {
         : this.props.renderProps,
     });
 
+    this.runBeforeTransition(
+      this.props.beforeTransition,
+      components,
+      renderProps,
+      force,
+      bail
+    )
+    .catch((error) => {
+      let afterTransition = false;
+      if (error && error.afterTransition !== undefined) {
+        afterTransition = error.afterTransition;
+        error = error.error; // eslint-disable-line
+      }
+
+      this.props.onError(error, {
+        reason: bail() || 'other',
+        // If not defined before it's a beforeTransition error
+        beforeTransition: !afterTransition,
+        router: this.props.renderProps.router,
+        abort: () => this.abort(true, abort),
+      });
+    });
+
     if (this.props.parallel) {
       this.runAfterTransition(
         this.props.afterTransition,
@@ -220,29 +243,6 @@ export default class RedialContext extends Component {
         }
       });
     }
-
-    this.runBeforeTransition(
-      this.props.beforeTransition,
-      components,
-      renderProps,
-      force,
-      bail
-    )
-    .catch((error) => {
-      let afterTransition = false;
-      if (error && error.afterTransition !== undefined) {
-        afterTransition = error.afterTransition;
-        error = error.error; // eslint-disable-line
-      }
-
-      this.props.onError(error, {
-        reason: bail() || 'other',
-        // If not defined before it's a beforeTransition error
-        beforeTransition: !afterTransition,
-        router: this.props.renderProps.router,
-        abort: () => this.abort(true, abort),
-      });
-    });
   }
 
   runAfterTransition(hooks, components, renderProps, force = false, bail) {
