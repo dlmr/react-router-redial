@@ -21,6 +21,7 @@ export default class App extends Component {
     return (
       <div style={style}>
         <h1>React Router Redial Example</h1>
+        <button onClick={this.props.abort}>Abort</button>
         <ul>
           <li>
             <IndexLink to="/">Start</IndexLink>
@@ -30,6 +31,12 @@ export default class App extends Component {
           </li>
           <li>
             <Link to="/fetch">Fetch, with client error</Link>
+          </li>
+          <li>
+            <Link to="/slow_5">Slow, takes 5 seconds to complete</Link>
+          </li>
+          <li>
+            <Link to="/slow_3">Slow, takes 3 seconds to complete</Link>
           </li>
           <li>
             <Link to="/defer">Defer, with client error</Link>

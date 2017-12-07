@@ -19,6 +19,10 @@ function hydrate(renderProps) {
   return createMap();
 }
 
+function getCompleteLocation(location) {
+  return `${location.pathname}${location.search}${location.hash}`;
+}
+
 export default class RedialContext extends Component {
   static displayName = 'RedialContext';
 
@@ -34,6 +38,7 @@ export default class RedialContext extends Component {
     afterTransition: PropTypes.array,
     parallel: PropTypes.bool,
     initialLoading: PropTypes.func,
+    syncWithHistory: PropTypes.bool,
     onError: PropTypes.func,
     onAborted: PropTypes.func,
     onStarted: PropTypes.func,
@@ -47,11 +52,12 @@ export default class RedialContext extends Component {
     beforeTransition: [],
     afterTransition: [],
     parallel: false,
+    syncWithHistory: true,
 
-    onError(err, { beforeTransition }) {
+    onError(err, { beforeTransition, location }) {
       if (process.env.NODE_ENV !== 'production') {
         const type = beforeTransition ? 'beforeTransition' : 'afterTransition';
-        console.error(type, err);
+        console.error(type, err, location);
       }
     },
 
@@ -150,14 +156,27 @@ export default class RedialContext extends Component {
           afterTransitionLoading: false,
         });
 
+        if (this.props.syncWithHistory && !becauseError) {
+          this.props.renderProps.router
+            .replace(this.state.prevRenderProps.location);
+        }
+
         if (this.props.onAborted) {
-          this.props.onAborted(becauseError);
+          this.props.onAborted(becauseError, {
+            router: this.props.renderProps.router,
+            previousLocation: this.state.prevRenderProps.location,
+          });
+        } else if (this.props.syncWithHistory && !becauseError) {
+          this.props.renderProps.router
+            .replace(this.state.prevRenderProps.location);
         }
       }
     }
   }
 
   load(components, renderProps, force = false) {
+    let unregister = () => {};
+    const location = renderProps.location;
     let isAborted = false;
     const abort = () => {
       isAborted = true;
@@ -180,6 +199,24 @@ export default class RedialContext extends Component {
     }
 
     this.completed.beforeTransition = false;
+
+    if (this.props.syncWithHistory) {
+      // Prevent adding a new entry to the history stack if a new link is pushed before
+      // we have completed the loading
+      unregister = this.props.renderProps.router.listenBefore(
+        (nextLocation) => {
+          if (
+            this.state.loading &&
+            this.state.prevRenderProps &&
+            getCompleteLocation(nextLocation) !== getCompleteLocation(renderProps.location)
+          ) {
+            unregister();
+            this.props.renderProps.router.replace(nextLocation);
+            return false;
+          }
+          return true;
+        });
+    }
 
     this.setState({
       aborted,
@@ -205,12 +242,14 @@ export default class RedialContext extends Component {
       }
 
       this.props.onError(error, {
+        location,
         reason: bail() || 'other',
         // If not defined before it's a beforeTransition error
         beforeTransition: !afterTransition,
         router: this.props.renderProps.router,
         abort: () => this.abort(true, abort),
       });
+      unregister();
     });
 
     if (this.props.parallel) {
@@ -230,12 +269,16 @@ export default class RedialContext extends Component {
       .catch((err) => {
         // We will only propagate this error if beforeTransition have been completed
         // This because the beforeTransition error is more critical
-        const error = () => this.props.onError(err, {
-          reason: bail() || 'other',
-          beforeTransition: false,
-          router: this.props.renderProps.router,
-          abort: () => this.abort(true, abort),
-        });
+        const error = () => {
+          this.props.onError(err, {
+            location,
+            reason: bail() || 'other',
+            beforeTransition: false,
+            router: this.props.renderProps.router,
+            abort: () => this.abort(true, abort),
+          });
+          unregister();
+        };
 
         if (this.completed.beforeTransition) {
           error();

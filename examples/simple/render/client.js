@@ -10,9 +10,9 @@ export default (container, routes) => {
   const goBackOnError = false;
 
   // Function that can be used as a setting for useRedial
-  function onError(err, { abort, beforeTransition, reason, router }) {
+  function onError(err, { location, abort, beforeTransition, reason, router }) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error(reason, err);
+      console.error(reason, err, location);
     }
 
     // We only what to do this if it was a blocking hook that failed
@@ -27,6 +27,21 @@ export default (container, routes) => {
     }
   }
 
+  function onAborted(becauseError, { previousLocation, router }) {
+    if (process.env.NODE_ENV !== 'production') {
+      if (becauseError) {
+        console.warn('Loading was aborted from an error');
+      } else {
+        console.warn('Loading was aborted manually');
+      }
+    }
+
+    // If the loading was aborted manually we want to go back to the previous URL
+    if (!becauseError) {
+      router.replace(previousLocation);
+    }
+  }
+
   const component = (
     <Router
       history={browserHistory}
@@ -37,6 +52,7 @@ export default (container, routes) => {
         parallel: true,
         initialLoading: () => <div>Loading…</div>,
         onError,
+        onAborted,
       }))}
     />
   );

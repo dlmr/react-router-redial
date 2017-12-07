@@ -76,15 +76,38 @@ Additionally components will have access to properties that has been set using `
 ## Client API
 The custom redial router middleware `useRedial` makes it easy to add support for redial on the client side using the `render` property from `Router` in React Router. It provides the following properties as a way to configure how the data loading should behave.
 ```
-locals                     Extra locals that should be provided to the hooks other than the default ones
-beforeTransition           Hooks that should be completed before a route transition is completed
-afterTransition            Hooks that are not needed before making a route transition
-parallel                   If set to true the afterTransition hooks will run in parallel with the beforeTransition ones
-initialLoading             Component should be shown on initial client load, useful if server rendering is not used
-onStarted(force)           Invoked when a route transition has been detected and when redial hooks will be invoked
-onError(error, metaData)   Invoked when an error happens, see below for more info
-onAborted(becauseError)    Invoked if it was prematurely aborted through manual interaction or an error
-onCompleted(type)          Invoked if everything was completed successfully, with type being either "beforeTransition" or "afterTransition"
+locals                               Extra locals that should be provided to the hooks other than the default ones
+beforeTransition                     Hooks that should be completed before a route transition is completed
+afterTransition                      Hooks that are not needed before making a route transition
+parallel                             If set to true the afterTransition hooks will run in parallel with the beforeTransition ones
+initialLoading                       Component should be shown on initial client load, useful if server rendering is not used
+syncWithHistory                      Default to true, and will when true make sure that the history matches successful transitions
+onStarted(force)                     Invoked when a route transition has been detected and when redial hooks will be invoked
+onError(error, metaData)             Invoked when an error happens, see below for more info
+onAborted(becauseError, metaData)    Invoked if it was prematurely aborted through manual interaction or an error
+onCompleted(type)                    Invoked if everything was completed successfully, with type being either "beforeTransition" or "afterTransition"
+```
+
+### `onAborted(becauseError, metaData)`
+__`metaData`__  
+```
+previousLocation   The previous location, before the loading started, can be used to reset the browser URL for example
+router             React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
+```
+
+#### Example
+We can use `onAborted` to add handling for when we abort loading. The example below shows how we can make the client replace the URL in the browser with what was defined before starting the loading, reseting it, when manually aborting.
+
+__NOTE: This is done automatically when `syncWithHistory` is set to true and no custom `onAborted` is defined.__
+
+```javascript
+// Function that can be used as a setting for useRedial
+function onAborted(becauseError, { previousLocation, router }) {
+  // If the loading was aborted manually we want to go back to the previous URL
+  if (!becauseError) {
+    router.replace(previousLocation);
+  }
+}
 ```
 
 ### `onError(error, metaData)`
@@ -94,6 +117,7 @@ abort()            Function that can be used to abort current loading
 beforeTransition   If the error originated from a beforeTransition hook or not
 reason             The reason for the error, can be either a "location-changed", "aborted" or "other"
 router             React Router instance https://github.com/ReactTraining/react-router/blob/master/docs/API.md#contextrouter
+location           The location that the error occurred for
 ```
 
 #### Example
