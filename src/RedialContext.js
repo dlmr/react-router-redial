@@ -185,39 +185,10 @@ export default class RedialContext extends Component {
       aborted,
       abort,
       loading: true,
-      prevRenderProps: this.state.aborted() ? this.state.prevRenderProps : this.props.renderProps,
+      prevRenderProps: this.state.loading || this.state.aborted()
+        ? this.state.prevRenderProps
+        : this.props.renderProps,
     });
-
-    if (this.props.parallel) {
-      this.runAfterTransition(
-        this.props.afterTransition,
-        components,
-        renderProps,
-        force,
-        bail
-      )
-      .then(() => {
-        if (this.completed.afterTransition) {
-          this.props.onCompleted('afterTransition');
-        }
-      })
-      .catch((err) => {
-        // We will only propagate this error if beforeTransition have been completed
-        // This because the beforeTransition error is more critical
-        const error = () => this.props.onError(err, {
-          reason: bail() || 'other',
-          beforeTransition: false,
-          router: this.props.renderProps.router,
-          abort: () => this.abort(true, abort),
-        });
-
-        if (this.completed.beforeTransition) {
-          error();
-        } else {
-          this.completed.error = error;
-        }
-      });
-    }
 
     this.runBeforeTransition(
       this.props.beforeTransition,
@@ -241,6 +212,38 @@ export default class RedialContext extends Component {
         abort: () => this.abort(true, abort),
       });
     });
+
+    if (this.props.parallel) {
+      this.runAfterTransition(
+        this.props.afterTransition,
+        components,
+        renderProps,
+        force,
+        bail
+      )
+      .then(() => {
+        if (this.completed.afterTransition) {
+          this.completed.afterTransition = false;
+          this.props.onCompleted('afterTransition');
+        }
+      })
+      .catch((err) => {
+        // We will only propagate this error if beforeTransition have been completed
+        // This because the beforeTransition error is more critical
+        const error = () => this.props.onError(err, {
+          reason: bail() || 'other',
+          beforeTransition: false,
+          router: this.props.renderProps.router,
+          abort: () => this.abort(true, abort),
+        });
+
+        if (this.completed.beforeTransition) {
+          error();
+        } else {
+          this.completed.error = error;
+        }
+      });
+    }
   }
 
   runAfterTransition(hooks, components, renderProps, force = false, bail) {
