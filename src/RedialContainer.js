@@ -14,19 +14,20 @@ export default class RedialContainer extends Component {
     redialContext: PropTypes.object.isRequired,
   };
 
+  reload = () => {
+    this.context.redialContext.reloadComponent(this.props.routerProps.route.component);
+  };
+
   render() {
     const { routerProps, ...props } = this.props;
     const {
       abortLoading,
       loading,
       afterTransitionLoading,
-      reloadComponent,
       redialMap,
     } = this.context.redialContext;
     const mapKey = getRoutePath(routerProps.route, routerProps.routes, routerProps.key);
     const redialProps = redialMap.get(mapKey);
-    const reload = () => reloadComponent(routerProps.route.component);
-    const abort = () => abortLoading();
 
     return React.cloneElement(
       this.props.children,
@@ -36,8 +37,8 @@ export default class RedialContainer extends Component {
         ...routerProps,
         loading,
         afterTransitionLoading,
-        reload,
-        abort,
+        reload: this.reload,
+        abort: abortLoading,
       }
     );
   }
